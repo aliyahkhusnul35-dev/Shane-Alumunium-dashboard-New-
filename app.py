@@ -122,7 +122,7 @@ st.markdown(
 )
 st.markdown(
     '<p class="sub-header">Sistem Business Intelligence untuk Pemantauan'
-    " Performa Penjualan dan Perilaku Pelanggan (CRISP-DM Framework)</p>",
+    " Performa Penjualan dan Perilaku Pelanggan</p>",
     unsafe_allow_html=True,
 )
 st.markdown("---")
