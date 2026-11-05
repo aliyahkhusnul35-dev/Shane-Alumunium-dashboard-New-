@@ -97,7 +97,7 @@ st.sidebar.markdown(f"**Total Data Terpilih:** {len(df_filtered):,} baris")
 # KONTEN UTAMA DASHBOARD
 # ==========================================
 st.markdown('<p class="main-header">📊 Dashboard Analisis Penjualan - Shane Aluminium</p>', unsafe_allow_html=True)
-st.markdown('<p class="sub-header">Sistem Business Intelligence untuk Pemantauan Performa Penjualan dan Perilaku Pelanggan (CRISP-DM Framework)</p>', unsafe_allow_html=True)
+st.markdown('<p class="sub-header">Sistem Business Intelligence untuk Pemantauan Performa Penjualan dan Perilaku Pelanggan</p>', unsafe_allow_html=True)
 st.markdown("---")
 
 # KPI Kartu Ringkasan
