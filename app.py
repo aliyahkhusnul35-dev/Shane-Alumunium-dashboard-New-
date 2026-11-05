@@ -89,7 +89,7 @@ st.markdown("**Studi Kasus: Shane Aluminium (Periode Nov 2025 - Sept 2026)**")
 st.markdown(
     "Dashboard ini menyajikan informasi penjualan, kinerja produk, perilaku"
     " pembelian pelanggan, dan distribusi pembayaran sebagai pendukung"
-    " strategi pemasaran digital[cite: 1]."
+    " strategi pemasaran digital."
 )
 st.markdown("---")
 
