@@ -315,7 +315,7 @@ st.dataframe(
 )
 
 # ==========================================
-# 4. METODE PEMBAYARAN (DIAGRAM PIE & DIAGRAM BATANG BERDAMBINGAN)
+# 4. METODE PEMBAYARAN (PIE CHART DENGAN RADIUS & ASPECT TETAP)
 # ==========================================
 st.markdown(
     '<p class="section-header">💳 4. Metode Pembayaran</p>',
@@ -340,17 +340,20 @@ if len(pay_sum) > 0:
 
     with col_pay1:
         fig, ax = plt.subplots(figsize=(7, 3.8))
+        # Mengunci radius lingkaran pie chart (radius=0.65) dan aspek rasio 'equal' agar ukurannya selalu konsisten
         ax.pie(
             pay_sum["Jumlah_Transaksi"],
             labels=pay_sum["Kategori_Pembayaran"],
             autopct="%1.1f%%",
-            startangle=100,
+            startangle=140,
             colors=["#3b82f6", "#f59e0b", "#64748b", "#10b981"],
             textprops={"fontsize": 8},
+            radius=0.65,
         )
+        ax.set_aspect("equal")
         ax.set_title(
             "Proporsi Transaksi Pembayaran",
-            fontsize=8,
+            fontsize=11,
             fontweight="bold",
             pad=10,
         )
