@@ -315,7 +315,7 @@ st.dataframe(
 )
 
 # ==========================================
-# 4. METODE PEMBAYARAN (JARAK JUDUL DAN PIE CHART DIPANGKAS RAPAT)
+# 4. METODE PEMBAYARAN (DIAGRAM PIE DI ATAS, DIAGRAM BATANG DI BAWAHNYA)
 # ==========================================
 st.markdown(
     '<p class="section-header">💳 4. Metode Pembayaran</p>',
@@ -336,57 +336,52 @@ pay_sum["Rata_Rata_Penjualan"] = (
 )
 
 if len(pay_sum) > 0:
-    col_pay1, col_pay2 = st.columns(2)
+    # 1. Diagram Pie Chart di Atas
+    fig, ax = plt.subplots(figsize=(6, 3.5))
+    ax.pie(
+        pay_sum["Jumlah_Transaksi"],
+        labels=pay_sum["Kategori_Pembayaran"],
+        autopct="%1.1f%%",
+        startangle=140,
+        colors=["#3b82f6", "#f59e0b", "#64748b", "#10b981"],
+        textprops={"fontsize": 8},
+    )
+    ax.set_title(
+        "Proporsi Transaksi Pembayaran", fontsize=11, fontweight="bold", pad=10
+    )
+    st.pyplot(fig)
 
-    with col_pay1:
-        # Margin bawah judul dipangkas rapat (margin-bottom: -5px)
-        st.markdown(
-            "<p style='text-align: center; font-weight: bold; font-size: 1.1rem; color: #0f172a; margin-bottom: -5px;'>Proporsi Transaksi Pembayaran</p>",
-            unsafe_allow_html=True,
-        )
-        fig, ax = plt.subplots(figsize=(7, 3.8))
-        ax.pie(
-            pay_sum["Jumlah_Transaksi"],
-            labels=pay_sum["Kategori_Pembayaran"],
-            autopct="%1.1f%%",
-            startangle=140,
-            colors=["#3b82f6", "#f59e0b", "#64748b", "#10b981"],
-            textprops={"fontsize": 8},
-            radius=0.65,
-        )
-        ax.set_aspect("equal")
-        # Posisi kotak sumbu dinaikkan lebih dekat ke atas agar rapat dengan judul
-        ax.set_position([0.15, 0.08, 0.7, 0.85])
-        st.pyplot(fig)
+    st.markdown("<br>", unsafe_allow_html=True)
 
-    with col_pay2:
-        st.markdown(
-            "<p style='text-align: center; font-weight: bold; font-size: 1.1rem; color: #0f172a; margin-bottom: 10px;'>Rata-rata Nilai Penjualan (Juta IDR)</p>",
-            unsafe_allow_html=True,
+    # 2. Diagram Batang Rata-Rata Penjualan di Bawahnya
+    fig2, ax2 = plt.subplots(figsize=(7, 3.8))
+    bars = ax2.bar(
+        pay_sum["Kategori_Pembayaran"],
+        pay_sum["Rata_Rata_Penjualan"] / 1e6,
+        color=["#3b82f6", "#f59e0b", "#64748b", "#10b981"],
+        width=0.45,
+    )
+    ax2.set_title(
+        "Rata-rata Nilai Penjualan (Juta IDR)",
+        fontsize=11,
+        fontweight="bold",
+        pad=10,
+    )
+    ax2.set_ylabel("Rata-rata (Juta Rp)", fontsize=9)
+    plt.xticks(rotation=15, fontsize=8)
+    plt.yticks(fontsize=8)
+    for bar in bars:
+        yval = bar.get_height()
+        ax2.text(
+            bar.get_x() + bar.get_width() / 2,
+            yval + max(0.1, yval * 0.02),
+            f"Rp {yval:.1f}jt",
+            ha="center",
+            va="bottom",
+            fontsize=8,
+            fontweight="bold",
         )
-        fig2, ax2 = plt.subplots(figsize=(7, 3.8))
-        bars = ax2.bar(
-            pay_sum["Kategori_Pembayaran"],
-            pay_sum["Rata_Rata_Penjualan"] / 1e6,
-            color=["#3b82f6", "#f59e0b", "#64748b", "#10b981"],
-            width=0.45,
-        )
-        ax2.set_ylabel("Rata-rata (Juta Rp)", fontsize=9)
-        plt.xticks(rotation=0, fontsize=8)
-        plt.yticks(fontsize=8)
-        for bar in bars:
-            yval = bar.get_height()
-            ax2.text(
-                bar.get_x() + bar.get_width() / 2,
-                yval + max(0.1, yval * 0.03),
-                f"Rp {yval:.1f}jt",
-                ha="center",
-                va="bottom",
-                fontsize=8,
-                fontweight="bold",
-            )
-        fig2.subplots_adjust(top=0.9, bottom=0.15, left=0.12, right=0.95)
-        st.pyplot(fig2)
+    st.pyplot(fig2)
 else:
     st.info("Data pembayaran kosong.")
 
@@ -396,4 +391,16 @@ st.dataframe(
     pay_sum.style.format(
         {
             "Total_Penjualan": "Rp {:,.2f}",
-            "Cash_Diterima": "
+            "Cash_Diterima": "Rp {:,.2f}",
+            "Kredit_Tempo": "Rp {:,.2f}",
+            "Rata_Rata_Penjualan": "Rp {:,.2f}",
+        }
+    ),
+    use_container_width=True,
+)
+
+st.markdown("---")
+st.markdown(
+    "<p style='text-align: center; color: #64748b; font-size: 0.85rem;'>© 2026 | Penelitian Skripsi Sistem Informasi - STMIK IKMI Cirebon</p>",
+    unsafe_allow_html=True,
+)
