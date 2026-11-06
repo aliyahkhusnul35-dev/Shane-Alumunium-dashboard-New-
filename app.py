@@ -91,21 +91,25 @@ def load_and_prepare_data():
 df = load_and_prepare_data()
 
 # ==========================================
-# SIDEBAR: FILTER DASHBOARD (DIPERBAIKI)
+# SIDEBAR: FILTER DASHBOARD (CLEAN UI)
 # ==========================================
 st.sidebar.markdown("🔍 ## Filter Dashboard")
 st.sidebar.markdown("---")
 
-# 1. Filter Periode Bulan
-all_months = sorted(df["Bulan_Transaksi"].unique())
-selected_months = st.sidebar.multiselect(
-    "Pilih Periode Bulan", options=all_months, default=all_months
+# 1. Filter Periode Bulan (Menggunakan Selectbox yang Bersih & Rapi)
+all_months_options = ["Semua Bulan"] + sorted(
+    df["Bulan_Transaksi"].unique().tolist()
+)
+selected_month_option = st.sidebar.selectbox(
+    "Pilih Periode Bulan", options=all_months_options
 )
 
-# 2. Filter Metode Pembayaran
-all_payments = sorted(df["Kategori_Pembayaran"].unique())
-selected_payments = st.sidebar.multiselect(
-    "Metode Pembayaran", options=all_payments, default=all_payments
+# 2. Filter Metode Pembayaran (Menggunakan Selectbox yang Bersih & Rapi)
+all_payment_options = ["Semua Metode Pembayaran"] + sorted(
+    df["Kategori_Pembayaran"].unique().tolist()
+)
+selected_payment_option = st.sidebar.selectbox(
+    "Metode Pembayaran", options=all_payment_options
 )
 
 st.sidebar.markdown("---")
@@ -118,19 +122,15 @@ search_query = st.sidebar.text_input(
 # Terapkan Filter ke DataFrame
 df_filtered = df.copy()
 
-if selected_months:
+if selected_month_option != "Semua Bulan":
     df_filtered = df_filtered[
-        df_filtered["Bulan_Transaksi"].isin(selected_months)
+        df_filtered["Bulan_Transaksi"] == selected_month_option
     ]
-else:
-    df_filtered = df_filtered.iloc[0:0]
 
-if selected_payments:
+if selected_payment_option != "Semua Metode Pembayaran":
     df_filtered = df_filtered[
-        df_filtered["Kategori_Pembayaran"].isin(selected_payments)
+        df_filtered["Kategori_Pembayaran"] == selected_payment_option
     ]
-else:
-    df_filtered = df_filtered.iloc[0:0]
 
 if search_query:
     df_filtered = df_filtered[
@@ -256,6 +256,7 @@ with tab3:
 
     st.dataframe(
         rfm_table.head(15).style.format({"Total_Nilai_Pembelian": "Rp {:,.2f}"}),
+        use_keyword=True,
         use_container_width=True,
     )
 
