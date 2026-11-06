@@ -474,12 +474,13 @@ with col_rfm2:
 st.markdown("<br>", unsafe_allow_html=True)
 
 # ==========================================
-# BAGIAN 4: METODE PEMBAYARAN (PIE CHART)
+# BAGIAN 4: ANALISIS METODE PEMBAYARAN (LENGKAP)
 # ==========================================
 st.markdown(
-    '<p class="section-header">💳 4. Metode Pembayaran</p>',
+    '<p class="section-header">💳 4. Analisis Metode Pembayaran</p>',
     unsafe_allow_html=True,
 )
+
 pay_sum = (
     df_filtered.groupby("Kategori_Pembayaran")
     .agg(
@@ -490,18 +491,49 @@ pay_sum = (
     )
     .reset_index()
 )
+
+# Menghitung persentase transaksi berdasarkan metode pembayaran
+total_trx_all = pay_sum["Jumlah_Transaksi"].sum()
+if total_trx_all > 0:
+    pay_sum["Persentase Transaksi (%)"] = (
+        pay_sum["Jumlah_Transaksi"] / total_trx_all
+    ) * 100
+else:
+    pay_sum["Persentase Transaksi (%)"] = 0.0
+
 pay_sum["Rata_Rata_Penjualan"] = (
     pay_sum["Total_Penjualan"] / pay_sum["Jumlah_Transaksi"]
 )
 
+# Menyusun ulang kolom tabel ringkasan metode pembayaran
+pay_sum_table = pay_sum[
+    [
+        "Kategori_Pembayaran",
+        "Jumlah_Transaksi",
+        "Persentase Transaksi (%)",
+        "Total_Penjualan",
+        "Cash_Diterima",
+        "Kredit_Tempo",
+    ]
+]
+pay_sum_table.columns = [
+    "Metode Pembayaran",
+    "Jumlah Transaksi",
+    "Persentase Transaksi (%)",
+    "Total Penjualan",
+    "Tunai / Transfer Masuk",
+    "Kredit / Tempo",
+]
+
 if len(pay_sum) > 0:
-    col_pie_left, col_pie_center, col_pie_right = st.columns([1, 2, 1])
-    with col_pie_center:
+    col_pay_left, col_pay_right = st.columns([1, 1])
+
+    with col_pay_left:
         st.markdown(
-            "<p style='text-align: center; font-weight: bold; font-size: 1.1rem; color: #0f172a; margin-bottom: -5px;'>Proporsi Transaksi Pembayaran</p>",
+            "<p style='text-align: center; font-weight: bold; font-size: 1.05rem; color: #0f172a; margin-bottom: -5px;'>Proporsi Persentase Transaksi</p>",
             unsafe_allow_html=True,
         )
-        fig_pie, ax_pie = plt.subplots(figsize=(7, 4))
+        fig_pie, ax_pie = plt.subplots(figsize=(6, 3.6))
         wedges, texts, autotexts = ax_pie.pie(
             pay_sum["Jumlah_Transaksi"],
             labels=pay_sum["Kategori_Pembayaran"],
@@ -509,7 +541,7 @@ if len(pay_sum) > 0:
             startangle=140,
             colors=["#3b82f6", "#f59e0b", "#64748b", "#10b981"],
             textprops={"fontsize": 8},
-            radius=0.62,
+            radius=0.6,
         )
         for autotext in autotexts:
             autotext.set_fontsize(8)
@@ -517,21 +549,36 @@ if len(pay_sum) > 0:
         ax_pie.set_aspect("equal")
         ax_pie.set_position([0.15, 0.08, 0.7, 0.85])
         st.pyplot(fig_pie)
+
+    with col_pay_right:
+        st.markdown(
+            "<p style='font-weight: 600; font-size: 1.05rem; color: #1e293b; margin-top: 5px;'>Perbandingan Tunai & Kredit/Tempo</p>",
+            unsafe_allow_html=True,
+        )
+        # Menampilkan ringkasan total nilai tunai vs kredit secara keseluruhan
+        total_cash_all = pay_sum["Cash_Diterima"].sum()
+        total_credit_all = pay_sum["Kredit_Tempo"].sum()
+        st.info(
+            f"💵 **Total Pembayaran Tunai/Transfer:** Rp {total_cash_all:,.0f}\n\n"
+            f"📑 **Total Pembayaran Kredit/Tempo:** Rp {total_credit_all:,.0f}"
+        )
 else:
     st.info("Data pembayaran kosong.")
 
 st.markdown("<br>", unsafe_allow_html=True)
-st.markdown("**Tabel Ringkasan Metode Pembayaran:**")
+st.markdown("**Tabel Ringkasan Analisis Metode Pembayaran:**")
 st.dataframe(
-    pay_sum.style.format(
+    pay_sum_table.style.format(
         {
-            "Total_Penjualan": "Rp {:,.2f}",
-            "Cash_Diterima": "Rp {:,.2f}",
-            "Kredit_Tempo": "Rp {:,.2f}",
-            "Rata_Rata_Penjualan": "Rp {:,.2f}",
+            "Jumlah Transaksi": "{:,}",
+            "Persentase Transaksi (%)": "{:.2f}%",
+            "Total Penjualan": "Rp {:,.2f}",
+            "Tunai / Transfer Masuk": "Rp {:,.2f}",
+            "Kredit / Tempo": "Rp {:,.2f}",
         }
     ),
     use_container_width=True,
+    hide_index=True,
 )
 
 st.markdown("---")
