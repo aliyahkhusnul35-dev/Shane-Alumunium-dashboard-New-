@@ -315,7 +315,7 @@ st.dataframe(
 )
 
 # ==========================================
-# 4. METODE PEMBAYARAN (PIE CHART PROPOSIONAL DI ATAS, DIAGRAM BATANG DI BAWAHNYA)
+# 4. METODE PEMBAYARAN (DIAGRAM PIE & DIAGRAM BATANG BERDAMBINGAN)
 # ==========================================
 st.markdown(
     '<p class="section-header">💳 4. Metode Pembayaran</p>',
@@ -336,52 +336,55 @@ pay_sum["Rata_Rata_Penjualan"] = (
 )
 
 if len(pay_sum) > 0:
-    # 1. Diagram Pie Chart dengan Ukuran Proporsional (Tidak Meluber)
-    fig, ax = plt.subplots(figsize=(4.5, 3.2))
-    ax.pie(
-        pay_sum["Jumlah_Transaksi"],
-        labels=pay_sum["Kategori_Pembayaran"],
-        autopct="%1.1f%%",
-        startangle=140,
-        colors=["#3b82f6", "#f59e0b", "#64748b", "#10b981"],
-        textprops={"fontsize": 8},
-    )
-    ax.set_title(
-        "Proporsi Transaksi Pembayaran", fontsize=11, fontweight="bold", pad=10
-    )
-    st.pyplot(fig)
+    col_pay1, col_pay2 = st.columns(2)
 
-    st.markdown("<br>", unsafe_allow_html=True)
-
-    # 2. Diagram Batang Rata-Rata Penjualan di Bawahnya
-    fig2, ax2 = plt.subplots(figsize=(7, 3.8))
-    bars = ax2.bar(
-        pay_sum["Kategori_Pembayaran"],
-        pay_sum["Rata_Rata_Penjualan"] / 1e6,
-        color=["#3b82f6", "#f59e0b", "#64748b", "#10b981"],
-        width=0.45,
-    )
-    ax2.set_title(
-        "Rata-rata Nilai Penjualan (Juta IDR)",
-        fontsize=11,
-        fontweight="bold",
-        pad=10,
-    )
-    ax2.set_ylabel("Rata-rata (Juta Rp)", fontsize=9)
-    plt.xticks(rotation=15, fontsize=8)
-    plt.yticks(fontsize=8)
-    for bar in bars:
-        yval = bar.get_height()
-        ax2.text(
-            bar.get_x() + bar.get_width() / 2,
-            yval + max(0.1, yval * 0.02),
-            f"Rp {yval:.1f}jt",
-            ha="center",
-            va="bottom",
-            fontsize=8,
-            fontweight="bold",
+    with col_pay1:
+        fig, ax = plt.subplots(figsize=(7, 3.8))
+        ax.pie(
+            pay_sum["Jumlah_Transaksi"],
+            labels=pay_sum["Kategori_Pembayaran"],
+            autopct="%1.1f%%",
+            startangle=140,
+            colors=["#3b82f6", "#f59e0b", "#64748b", "#10b981"],
+            textprops={"fontsize": 8},
         )
-    st.pyplot(fig2)
+        ax.set_title(
+            "Proporsi Transaksi Pembayaran",
+            fontsize=11,
+            fontweight="bold",
+            pad=10,
+        )
+        st.pyplot(fig)
+
+    with col_pay2:
+        fig2, ax2 = plt.subplots(figsize=(7, 3.8))
+        bars = ax2.bar(
+            pay_sum["Kategori_Pembayaran"],
+            pay_sum["Rata_Rata_Penjualan"] / 1e6,
+            color=["#3b82f6", "#f59e0b", "#64748b", "#10b981"],
+            width=0.45,
+        )
+        ax2.set_title(
+            "Rata-rata Nilai Penjualan (Juta IDR)",
+            fontsize=11,
+            fontweight="bold",
+            pad=10,
+        )
+        ax2.set_ylabel("Rata-rata (Juta Rp)", fontsize=9)
+        plt.xticks(rotation=15, fontsize=8)
+        plt.yticks(fontsize=8)
+        for bar in bars:
+            yval = bar.get_height()
+            ax2.text(
+                bar.get_x() + bar.get_width() / 2,
+                yval + max(0.1, yval * 0.02),
+                f"Rp {yval:.1f}jt",
+                ha="center",
+                va="bottom",
+                fontsize=8,
+                fontweight="bold",
+            )
+        st.pyplot(fig2)
 else:
     st.info("Data pembayaran kosong.")
 
