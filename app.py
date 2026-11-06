@@ -353,3 +353,58 @@ with col_pay1:
             fontsize=11,
             fontweight="bold",
             pad=10,
+        )
+        st.pyplot(fig)
+    else:
+        st.info("Data pembayaran kosong.")
+
+with col_pay2:
+    if len(pay_sum) > 0:
+        fig, ax = plt.subplots(figsize=(7, 3.8))
+        bars = ax.bar(
+            pay_sum["Kategori_Pembayaran"],
+            pay_sum["Rata_Rata_Penjualan"] / 1e6,
+            color=["#3b82f6", "#f59e0b", "#64748b", "#10b981"],
+            width=0.45,
+        )
+        ax.set_title(
+            "Rata-rata Nilai Penjualan (Juta IDR)",
+            fontsize=11,
+            fontweight="bold",
+            pad=10,
+        )
+        ax.set_ylabel("Rata-rata (Juta Rp)", fontsize=9)
+        plt.xticks(rotation=15, fontsize=8)
+        plt.yticks(fontsize=8)
+        for bar in bars:
+            yval = bar.get_height()
+            ax.text(
+                bar.get_x() + bar.get_width() / 2,
+                yval + max(0.1, yval * 0.02),
+                f"Rp {yval:.1f}jt",
+                ha="center",
+                va="bottom",
+                fontsize=8,
+                fontweight="bold",
+            )
+        st.pyplot(fig)
+
+st.markdown("<br>", unsafe_allow_html=True)
+st.markdown("**Tabel Ringkasan Metode Pembayaran:**")
+st.dataframe(
+    pay_sum.style.format(
+        {
+            "Total_Penjualan": "Rp {:,.2f}",
+            "Cash_Diterima": "Rp {:,.2f}",
+            "Kredit_Tempo": "Rp {:,.2f}",
+            "Rata_Rata_Penjualan": "Rp {:,.2f}",
+        }
+    ),
+    use_container_width=True,
+)
+
+st.markdown("---")
+st.markdown(
+    "<p style='text-align: center; color: #64748b; font-size: 0.85rem;'>© 2026 | Penelitian Skripsi Sistem Informasi - STMIK IKMI Cirebon</p>",
+    unsafe_allow_html=True,
+)
