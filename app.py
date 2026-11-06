@@ -315,7 +315,7 @@ st.dataframe(
 )
 
 # ==========================================
-# 4. METODE PEMBAYARAN (PIE CHART DIPERKECIL UKURAN & FONT-NYA)
+# 4. METODE PEMBAYARAN (HANYA DIAGRAM PIE)
 # ==========================================
 st.markdown(
     '<p class="section-header">💳 4. Metode Pembayaran</p>',
@@ -336,61 +336,29 @@ pay_sum["Rata_Rata_Penjualan"] = (
 )
 
 if len(pay_sum) > 0:
-    col_pay1, col_pay2 = st.columns(2)
-
-    with col_pay1:
+    # Menggunakan layout kolom untuk menengahkan atau menempatkan diagram pie dengan rapi
+    col_pie_left, col_pie_center, col_pie_right = st.columns([1, 2, 1])
+    with col_pie_center:
         st.markdown(
             "<p style='text-align: center; font-weight: bold; font-size: 1.1rem; color: #0f172a; margin-bottom: -5px;'>Proporsi Transaksi Pembayaran</p>",
             unsafe_allow_html=True,
         )
-        fig, ax = plt.subplots(figsize=(7, 3.8))
-
-        # Menggunakan radius lebih kecil (0.5) dan ukuran font label/persentase lebih kecil (7)
+        fig, ax = plt.subplots(figsize=(7, 4))
         wedges, texts, autotexts = ax.pie(
             pay_sum["Jumlah_Transaksi"],
             labels=pay_sum["Kategori_Pembayaran"],
             autopct="%1.1f%%",
             startangle=140,
             colors=["#3b82f6", "#f59e0b", "#64748b", "#10b981"],
-            textprops={"fontsize": 7},
-            radius=0.5,
+            textprops={"fontsize": 8},
+            radius=0.55,
         )
-        # Menyesuaikan ukuran font teks persentase di dalam potongan pie
         for autotext in autotexts:
-            autotext.set_fontsize(7)
+            autotext.set_fontsize(8)
 
         ax.set_aspect("equal")
         ax.set_position([0.15, 0.08, 0.7, 0.85])
         st.pyplot(fig)
-
-    with col_pay2:
-        st.markdown(
-            "<p style='text-align: center; font-weight: bold; font-size: 1.1rem; color: #0f172a; margin-bottom: 10px;'>Rata-rata Nilai Penjualan (Juta IDR)</p>",
-            unsafe_allow_html=True,
-        )
-        fig2, ax2 = plt.subplots(figsize=(7, 3.8))
-        bars = ax2.bar(
-            pay_sum["Kategori_Pembayaran"],
-            pay_sum["Rata_Rata_Penjualan"] / 1e6,
-            color=["#3b82f6", "#f59e0b", "#64748b", "#10b981"],
-            width=0.45,
-        )
-        ax2.set_ylabel("Rata-rata (Juta Rp)", fontsize=9)
-        plt.xticks(rotation=0, fontsize=8)
-        plt.yticks(fontsize=8)
-        for bar in bars:
-            yval = bar.get_height()
-            ax2.text(
-                bar.get_x() + bar.get_width() / 2,
-                yval + max(0.1, yval * 0.03),
-                f"Rp {yval:.1f}jt",
-                ha="center",
-                va="bottom",
-                fontsize=8,
-                fontweight="bold",
-            )
-        fig2.subplots_adjust(top=0.9, bottom=0.15, left=0.12, right=0.95)
-        st.pyplot(fig2)
 else:
     st.info("Data pembayaran kosong.")
 
