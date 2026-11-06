@@ -315,7 +315,7 @@ st.dataframe(
 )
 
 # ==========================================
-# 4. METODE PEMBAYARAN (PIE CHART DIKECILKAN & FONT JUDUL DISERASIKAN)
+# 4. METODE PEMBAYARAN (PIE CHART KECIL SEJAJAR & RAPI)
 # ==========================================
 st.markdown(
     '<p class="section-header">💳 4. Metode Pembayaran</p>',
@@ -339,8 +339,8 @@ col_pay1, col_pay2 = st.columns(2)
 
 with col_pay1:
     if len(pay_sum) > 0:
-        # Ukuran figsize diperkecil agar pie chart lebih proporsional & serasi dengan diagram batang
-        fig, ax = plt.subplots(figsize=(5.5, 3.2))
+        # Ukuran figsize dikecilin agar diagram pie proporsional dan sama ukuran dengan grafik batang
+        fig, ax = plt.subplots(figsize=(5.2, 3.5))
         ax.pie(
             pay_sum["Jumlah_Transaksi"],
             labels=pay_sum["Kategori_Pembayaran"],
@@ -349,7 +349,6 @@ with col_pay1:
             colors=["#3b82f6", "#f59e0b", "#64748b", "#10b981"],
             textprops={"fontsize": 8},
         )
-        # Ukuran font judul disesuaikan menjadi 11 agar sama persis dengan grafik sebelah
         ax.set_title(
             "Proporsi Transaksi Pembayaran",
             fontsize=11,
@@ -383,4 +382,30 @@ with col_pay2:
             ax.text(
                 bar.get_x() + bar.get_width() / 2,
                 yval + max(0.1, yval * 0.02),
-                f"Rp {
+                f"Rp {yval:.1f}jt",
+                ha="center",
+                va="bottom",
+                fontsize=8,
+                fontweight="bold",
+            )
+        st.pyplot(fig)
+
+st.markdown("<br>", unsafe_allow_html=True)
+st.markdown("**Tabel Ringkasan Metode Pembayaran:**")
+st.dataframe(
+    pay_sum.style.format(
+        {
+            "Total_Penjualan": "Rp {:,.2f}",
+            "Cash_Diterima": "Rp {:,.2f}",
+            "Kredit_Tempo": "Rp {:,.2f}",
+            "Rata_Rata_Penjualan": "Rp {:,.2f}",
+        }
+    ),
+    use_container_width=True,
+)
+
+st.markdown("---")
+st.markdown(
+    "<p style='text-align: center; color: #64748b; font-size: 0.85rem;'>© 2026 | Penelitian Skripsi Sistem Informasi - STMIK IKMI Cirebon</p>",
+    unsafe_allow_html=True,
+)
