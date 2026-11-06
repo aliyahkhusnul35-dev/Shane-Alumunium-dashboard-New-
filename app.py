@@ -107,10 +107,4 @@ def load_and_prepare_data():
         if "cash" in ket_str or "tf" in ket_str:
             return "Cash / Transfer"
         elif "kredit" in ket_str or "tempo" in ket_str or "kontra bon" in ket_str:
-            return "Kredit / Tempo"
-        elif "giro" in ket_str:
-            return "Giro"
-        else:
-            return "Lainnya"
-
-    df["Kategori_Pembayaran"] = df["Keterangan"].apply(
+            return "Kredit
