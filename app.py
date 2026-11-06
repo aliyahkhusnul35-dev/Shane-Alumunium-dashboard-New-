@@ -93,10 +93,10 @@ df = load_and_prepare_data()
 # ==========================================
 # SIDEBAR: FILTER DASHBOARD (CLEAN UI)
 # ==========================================
-st.sidebar.markdown("🔍 ## Filter Dashboard")
+st.sidebar.markdown("🔍 Filter Dashboard")
 st.sidebar.markdown("---")
 
-# 1. Filter Periode Bulan (Menggunakan Selectbox yang Bersih & Rapi)
+# 1. Filter Periode Bulan
 all_months_options = ["Semua Bulan"] + sorted(
     df["Bulan_Transaksi"].unique().tolist()
 )
@@ -104,7 +104,7 @@ selected_month_option = st.sidebar.selectbox(
     "Pilih Periode Bulan", options=all_months_options
 )
 
-# 2. Filter Metode Pembayaran (Menggunakan Selectbox yang Bersih & Rapi)
+# 2. Filter Metode Pembayaran
 all_payment_options = ["Semua Metode Pembayaran"] + sorted(
     df["Kategori_Pembayaran"].unique().tolist()
 )
@@ -256,7 +256,6 @@ with tab3:
 
     st.dataframe(
         rfm_table.head(15).style.format({"Total_Nilai_Pembelian": "Rp {:,.2f}"}),
-        use_keyword=True,
         use_container_width=True,
     )
 
