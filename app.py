@@ -48,19 +48,19 @@ st.markdown(
     }
 
     [data-testid="stMetricValue"] {
-        font-size: 1.4rem !important;
+        font-size: 1.3rem !important;
         font-weight: 700;
         color: #0f172a;
     }
     
     [data-testid="stMetricLabel"] {
-        font-size: 0.9rem !important;
+        font-size: 0.85rem !important;
         color: #64748b;
     }
 
     .stMetric {
         background-color: #ffffff;
-        padding: 14px;
+        padding: 12px;
         border-radius: 10px;
         box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
         border: 1px solid #e2e8f0;
@@ -189,17 +189,30 @@ st.markdown(
 )
 st.markdown("---")
 
-# --- INDIKATOR UTAMA (METRICS) ---
+# --- INDIKATOR UTAMA (6 KPI - 2 Baris x 3 Kolom) ---
 total_penjualan = df_filtered["Jumlah"].sum()
 total_transaksi = df_filtered["Invoice"].count()
 total_unit_terjual = df_filtered["Total Unit"].sum()
 total_pelanggan_aktif = df_filtered["Pelanggan_Cleaned"].nunique()
 
-col1, col2, col3, col4 = st.columns(4)
-col1.metric("Total Penjualan", f"Rp {total_penjualan:,.0f}")
-col2.metric("Total Unit Terjual", f"{total_unit_terjual:,} Unit")
-col3.metric("Jumlah Transaksi", f"{total_transaksi:,} Transaksi")
-col4.metric("Pelanggan Aktif", f"{total_pelanggan_aktif:,} Toko")
+rata_rata_nilai_transaksi = (
+    (total_penjualan / total_transaksi) if total_transaksi > 0 else 0
+)
+rata_rata_unit_transaksi = (
+    (total_unit_terjual / total_transaksi) if total_transaksi > 0 else 0
+)
+
+# Baris KPI 1 (3 Kartu)
+kpi1_1, kpi1_2, kpi1_3 = st.columns(3)
+kpi1_1.metric("Total Penjualan", f"Rp {total_penjualan:,.0f}")
+kpi1_2.metric("Total Unit Terjual", f"{total_unit_terjual:,} Unit")
+kpi1_3.metric("Jumlah Transaksi", f"{total_transaksi:,} Transaksi")
+
+# Baris KPI 2 (3 Kartu)
+kpi2_1, kpi2_2, kpi2_3 = st.columns(3)
+kpi2_1.metric("Pelanggan Aktif", f"{total_pelanggan_aktif:,} Toko")
+kpi2_2.metric("Rata-rata Nilai Transaksi", f"Rp {rata_rata_nilai_transaksi:,.0f}")
+kpi2_3.metric("Rata-rata Unit per Transaksi", f"{rata_rata_unit_transaksi:.1f} Unit")
 
 st.markdown("<br>", unsafe_allow_html=True)
 
@@ -264,120 +277,4 @@ with col_row1_2:
     bars = ax.bar(
         prod_sum["Kategori Produk"],
         prod_sum["Total Unit Terjual"],
-        color=["#3b82f6", "#f59e0b", "#8b5cf6"],
-        width=0.45,
-    )
-    ax.set_title(
-        "Total Unit Terjual Berdasarkan Model Rak",
-        fontsize=11,
-        fontweight="bold",
-        pad=10,
-    )
-    ax.set_ylabel("Jumlah Unit", fontsize=9)
-    plt.xticks(fontsize=8)
-    plt.yticks(fontsize=8)
-    for bar in bars:
-        yval = bar.get_height()
-        ax.text(
-            bar.get_x() + bar.get_width() / 2,
-            yval + max(1, yval * 0.02),
-            f"{int(yval)}",
-            ha="center",
-            va="bottom",
-            fontsize=8,
-            fontweight="bold",
-        )
-    st.pyplot(fig)
-
-st.markdown("<br>", unsafe_allow_html=True)
-
-# ==========================================
-# 3. PERILAKU PELANGGAN (RFM)
-# ==========================================
-st.markdown(
-    '<p class="section-header">👥 3. Perilaku Pembelian Pelanggan (RFM Deskriptif)</p>',
-    unsafe_allow_html=True,
-)
-rfm_table = (
-    df_filtered.groupby("Pelanggan_Cleaned")
-    .agg(
-        Frekuensi_Transaksi=("Invoice", "count"),
-        Total_Nilai_Pembelian=("Jumlah", "sum"),
-        Total_Unit_Dibeli=("Total Unit", "sum"),
-    )
-    .reset_index()
-    .sort_values(by="Total_Nilai_Pembelian", ascending=False)
-)
-
-st.dataframe(
-    rfm_table.head(10).style.format({"Total_Nilai_Pembelian": "Rp {:,.2f}"}),
-    use_container_width=True,
-)
-
-# ==========================================
-# 4. METODE PEMBAYARAN (PIE CHART DIPERBESAR SEDIKIT)
-# ==========================================
-st.markdown(
-    '<p class="section-header">💳 4. Metode Pembayaran</p>',
-    unsafe_allow_html=True,
-)
-pay_sum = (
-    df_filtered.groupby("Kategori_Pembayaran")
-    .agg(
-        Jumlah_Transaksi=("Invoice", "count"),
-        Total_Penjualan=("Jumlah", "sum"),
-        Cash_Diterima=("Cash/Transfer", "sum"),
-        Kredit_Tempo=("Kredit", "sum"),
-    )
-    .reset_index()
-)
-pay_sum["Rata_Rata_Penjualan"] = (
-    pay_sum["Total_Penjualan"] / pay_sum["Jumlah_Transaksi"]
-)
-
-if len(pay_sum) > 0:
-    col_pie_left, col_pie_center, col_pie_right = st.columns([1, 2, 1])
-    with col_pie_center:
-        st.markdown(
-            "<p style='text-align: center; font-weight: bold; font-size: 1.1rem; color: #0f172a; margin-bottom: -5px;'>Proporsi Transaksi Pembayaran</p>",
-            unsafe_allow_html=True,
-        )
-        fig, ax = plt.subplots(figsize=(7, 4))
-        # Memperbesar sedikit ukuran radius pie chart menjadi 0.62 dengan ukuran font 8
-        wedges, texts, autotexts = ax.pie(
-            pay_sum["Jumlah_Transaksi"],
-            labels=pay_sum["Kategori_Pembayaran"],
-            autopct="%1.1f%%",
-            startangle=140,
-            colors=["#3b82f6", "#f59e0b", "#64748b", "#10b981"],
-            textprops={"fontsize": 8},
-            radius=0.62,
-        )
-        for autotext in autotexts:
-            autotext.set_fontsize(8)
-
-        ax.set_aspect("equal")
-        ax.set_position([0.15, 0.08, 0.7, 0.85])
-        st.pyplot(fig)
-else:
-    st.info("Data pembayaran kosong.")
-
-st.markdown("<br>", unsafe_allow_html=True)
-st.markdown("**Tabel Ringkasan Metode Pembayaran:**")
-st.dataframe(
-    pay_sum.style.format(
-        {
-            "Total_Penjualan": "Rp {:,.2f}",
-            "Cash_Diterima": "Rp {:,.2f}",
-            "Kredit_Tempo": "Rp {:,.2f}",
-            "Rata_Rata_Penjualan": "Rp {:,.2f}",
-        }
-    ),
-    use_container_width=True,
-)
-
-st.markdown("---")
-st.markdown(
-    "<p style='text-align: center; color: #64748b; font-size: 0.85rem;'>© 2026 | Penelitian Skripsi Sistem Informasi - STMIK IKMI Cirebon</p>",
-    unsafe_allow_html=True,
-)
+        color=["#3b82f6", "#f
