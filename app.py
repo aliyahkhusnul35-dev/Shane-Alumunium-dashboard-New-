@@ -88,21 +88,25 @@ def load_data():
 df = load_data()
 
 # ==========================================
-# SIDEBAR: FILTER DASHBOARD (SESUAI GAMBAR)
+# SIDEBAR: FILTER DASHBOARD
 # ==========================================
 st.sidebar.markdown("🔍 ## Filter Dashboard")
 st.sidebar.markdown("---")
 
-# 1. Filter Periode Bulan
+# 1. Filter Periode Bulan (Menggunakan Multiselect dengan opsi Pilih Semua / Spesifik)
 all_months = sorted(df["Bulan_Transaksi"].unique())
 selected_months = st.sidebar.multiselect(
-    "Pilih Periode Bulan", options=all_months, default=all_months
+    "Pilih Periode Bulan",
+    options=all_months,
+    default=all_months,  # Default terpilih semua
 )
 
 # 2. Filter Metode Pembayaran
 all_payments = sorted(df["Kategori_Pembayaran"].unique())
 selected_payments = st.sidebar.multiselect(
-    "Metode Pembayaran", options=all_payments, default=all_payments
+    "Metode Pembayaran",
+    options=all_payments,
+    default=all_payments,  # Default terpilih semua
 )
 
 st.sidebar.markdown("---")
@@ -112,11 +116,22 @@ search_query = st.sidebar.text_input(
     "Cari Nama Toko / Pelanggan:", placeholder="Contoh: Barokah"
 )
 
-# Terapkan Filter ke DataFrame
-df_filtered = df[
-    df["Bulan_Transaksi"].isin(selected_months)
-    & df["Kategori_Pembayaran"].isin(selected_payments)
-]
+# Terapkan Filter ke DataFrame dengan aman
+df_filtered = df.copy()
+
+if selected_months:
+    df_filtered = df_filtered[
+        df_filtered["Bulan_Transaksi"].isin(selected_months)
+    ]
+else:
+    df_filtered = df_filtered.iloc[0:0]  # Kosong jika tidak ada yang dipilih
+
+if selected_payments:
+    df_filtered = df_filtered[
+        df_filtered["Kategori_Pembayaran"].isin(selected_payments)
+    ]
+else:
+    df_filtered = df_filtered.iloc[0:0]
 
 if search_query:
     df_filtered = df_filtered[
@@ -127,7 +142,6 @@ if search_query:
 
 st.sidebar.markdown("---")
 st.sidebar.markdown(f"📊 **Total Data Terpilih:** {len(df_filtered)} baris")
-
 
 # ==========================================
 # HEADER UTAMA DASHBOARD
