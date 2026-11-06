@@ -4,7 +4,7 @@ import pandas as pd
 import seaborn as sns
 import streamlit as st
 
-# Konfigurasi Halaman Dashboard (Soft Blue Theme sesuai preferensi visual)
+# Konfigurasi Halaman Dashboard (Soft Blue Theme)
 st.set_page_config(
     page_title="Dashboard Analisis Perilaku Pembelian - Shane Alumunium",
     page_icon="📊",
@@ -87,22 +87,29 @@ def load_data():
 
 df = load_data()
 
-# --- SIDEBAR FILTER ---
-st.sidebar.header("🔍 Filter Dashboard")
-st.sidebar.markdown(
-    "Gunakan filter di bawah untuk meninjau data secara interaktif."
-)
+# ==========================================
+# SIDEBAR: FILTER DASHBOARD (SESUAI GAMBAR)
+# ==========================================
+st.sidebar.markdown("🔍 ## Filter Dashboard")
+st.sidebar.markdown("---")
 
-# Filter Rentang Bulan / Periode
+# 1. Filter Periode Bulan
 all_months = sorted(df["Bulan_Transaksi"].unique())
 selected_months = st.sidebar.multiselect(
-    "Pilih Bulan Transaksi", options=all_months, default=all_months
+    "Pilih Periode Bulan", options=all_months, default=all_months
 )
 
-# Filter Kategori Pembayaran
+# 2. Filter Metode Pembayaran
 all_payments = sorted(df["Kategori_Pembayaran"].unique())
 selected_payments = st.sidebar.multiselect(
-    "Pilih Metode Pembayaran", options=all_payments, default=all_payments
+    "Metode Pembayaran", options=all_payments, default=all_payments
+)
+
+st.sidebar.markdown("---")
+st.sidebar.markdown("🔎 **Pencarian Toko**")
+# 3. Fitur Pencarian Toko / Pelanggan
+search_query = st.sidebar.text_input(
+    "Cari Nama Toko / Pelanggan:", placeholder="Contoh: Barokah"
 )
 
 # Terapkan Filter ke DataFrame
@@ -111,7 +118,20 @@ df_filtered = df[
     & df["Kategori_Pembayaran"].isin(selected_payments)
 ]
 
-# --- HEADER UTAMA ---
+if search_query:
+    df_filtered = df_filtered[
+        df_filtered["Pelanggan_Cleaned"].str.contains(
+            search_query.strip().upper(), na=False
+        )
+    ]
+
+st.sidebar.markdown("---")
+st.sidebar.markdown(f"📊 **Total Data Terpilih:** {len(df_filtered)} baris")
+
+
+# ==========================================
+# HEADER UTAMA DASHBOARD
+# ==========================================
 st.title("📊 Dashboard Business Intelligence: Analisis Perilaku Pembelian Pelanggan")
 st.subheader("Studi Kasus: Shane Alumunium (Periode November 2025 - September 2026)")
 st.markdown("---")
@@ -130,37 +150,36 @@ col4.metric("Pelanggan Aktif", f"{total_pelanggan_aktif:,} Toko")
 
 st.markdown("---")
 
-# --- TABS UNTUK STRUKTUR ANALISIS ---
+# --- TABS ANALISIS ---
 tab1, tab2, tab3, tab4 = st.tabs(
     ["📈 Tren Penjualan", "📦 Analisis Produk", "👥 Perilaku Pelanggan", "💳 Analisis Pembayaran"]
 )
 
 with tab1:
     st.markdown("### Analisis Tren Penjualan Bulanan")
-    st.markdown(
-        "Grafik berikut menunjukkan fluktuasi nilai penjualan total ($TS = \sum V_i$) selama periode pengamatan."
-    )
-
     trend_df = (
         df_filtered.groupby("Bulan_Transaksi")
         .agg(Total_Penjualan=("Jumlah", "sum"), Jumlah_Transaksi=("Invoice", "count"))
         .reset_index()
     )
 
-    fig, ax = plt.subplots(figsize=(10, 4.5))
-    ax.plot(
-        trend_df["Bulan_Transaksi"],
-        trend_df["Total_Penjualan"] / 1e6,
-        marker="o",
-        color="#2b5c8f",
-        linewidth=2.5,
-    )
-    ax.set_title("Tren Nilai Penjualan Bulanan (Dalam Juta Rupiah)", fontsize=12, fontweight="bold")
-    ax.set_xlabel("Bulan", fontsize=10)
-    ax.set_ylabel("Total Penjualan (Juta Rp)", fontsize=10)
-    plt.xticks(rotation=45)
-    ax.grid(True, linestyle="--", alpha=0.5)
-    st.pyplot(fig)
+    if len(trend_df) > 0:
+        fig, ax = plt.subplots(figsize=(10, 4.5))
+        ax.plot(
+            trend_df["Bulan_Transaksi"],
+            trend_df["Total_Penjualan"] / 1e6,
+            marker="o",
+            color="#2b5c8f",
+            linewidth=2.5,
+        )
+        ax.set_title("Tren Nilai Penjualan Bulanan (Juta Rupiah)", fontsize=12, fontweight="bold")
+        ax.set_xlabel("Bulan", fontsize=10)
+        ax.set_ylabel("Total Penjualan (Juta Rp)", fontsize=10)
+        plt.xticks(rotation=45)
+        ax.grid(True, linestyle="--", alpha=0.5)
+        st.pyplot(fig)
+    else:
+        st.warning("Tidak ada data yang sesuai dengan filter yang dipilih.")
 
     with st.expander("Lihat Tabel Ringkasan Tren Penjualan"):
         st.dataframe(
@@ -170,14 +189,12 @@ with tab1:
 
 with tab2:
     st.markdown("### Analisis Kontribusi Produk")
-    st.markdown("Perbandingan total unit terjual ($TQ = \sum Q_i$) untuk setiap model rak.")
-
     prod_sum = pd.DataFrame(
         {
             "Kategori Produk": [
-                "Model Rak Solid 2P",
-                "Model Rak Magic 2P",
-                "Model Rak Magic 3P",
+                "Rak Solid 2P",
+                "Rak Magic 2P",
+                "Rak Magic 3P",
             ],
             "Total Unit Terjual": [
                 df_filtered["Model Rak Solid 2p"].sum(),
@@ -200,7 +217,7 @@ with tab2:
         yval = bar.get_height()
         ax.text(
             bar.get_x() + bar.get_width() / 2,
-            yval + 10,
+            yval + max(1, yval * 0.02),
             f"{int(yval)}",
             ha="center",
             va="bottom",
@@ -208,15 +225,10 @@ with tab2:
             fontweight="bold",
         )
     st.pyplot(fig)
-
     st.dataframe(prod_sum, use_container_width=True)
 
 with tab3:
     st.markdown("### Analisis Perilaku Pembelian Pelanggan (RFM Deskriptif)")
-    st.markdown(
-        "Pengelompokan transaksi berdasarkan pelanggan untuk melihat frekuensi pembelian ($F_j$) dan total nilai pembelian ($M_j$)."
-    )
-
     rfm_table = (
         df_filtered.groupby("Pelanggan_Cleaned")
         .agg(
@@ -235,10 +247,6 @@ with tab3:
 
 with tab4:
     st.markdown("### Analisis Metode Pembayaran")
-    st.markdown(
-        "Distribusi transaksi antara pembayaran tunai/transfer, kredit/tempo, dan giro."
-    )
-
     pay_sum = (
         df_filtered.groupby("Kategori_Pembayaran")
         .agg(
@@ -252,16 +260,19 @@ with tab4:
 
     col_a, col_b = st.columns(2)
     with col_a:
-        fig, ax = plt.subplots(figsize=(6, 4))
-        ax.pie(
-            pay_sum["Jumlah_Transaksi"],
-            labels=pay_sum["Kategori_Pembayaran"],
-            autopct="%1.1f%%",
-            startangle=140,
-            colors=["#4682B4", "#CD853F", "#708090", "#DAA520"],
-        )
-        ax.set_title("Proporsi Transaksi Berdasarkan Pembayaran", fontsize=11, fontweight="bold")
-        st.pyplot(fig)
+        if len(pay_sum) > 0:
+            fig, ax = plt.subplots(figsize=(6, 4))
+            ax.pie(
+                pay_sum["Jumlah_Transaksi"],
+                labels=pay_sum["Kategori_Pembayaran"],
+                autopct="%1.1f%%",
+                startangle=140,
+                colors=["#4682B4", "#CD853F", "#708090", "#DAA520"],
+            )
+            ax.set_title("Proporsi Transaksi Berdasarkan Pembayaran", fontsize=11, fontweight="bold")
+            st.pyplot(fig)
+        else:
+            st.info("Data pembayaran kosong untuk filter ini.")
 
     with col_b:
         st.dataframe(
