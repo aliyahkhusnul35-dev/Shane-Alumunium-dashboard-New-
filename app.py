@@ -315,7 +315,7 @@ st.dataframe(
 )
 
 # ==========================================
-# 4. METODE PEMBAYARAN (DIAGRAM PIE DI ATAS, DIAGRAM BATANG DI BAWAHNYA)
+# 4. METODE PEMBAYARAN (PIE CHART PROPOSIONAL DI ATAS, DIAGRAM BATANG DI BAWAHNYA)
 # ==========================================
 st.markdown(
     '<p class="section-header">💳 4. Metode Pembayaran</p>',
@@ -336,8 +336,8 @@ pay_sum["Rata_Rata_Penjualan"] = (
 )
 
 if len(pay_sum) > 0:
-    # 1. Diagram Pie Chart di Atas
-    fig, ax = plt.subplots(figsize=(6, 3.5))
+    # 1. Diagram Pie Chart dengan Ukuran Proporsional (Tidak Meluber)
+    fig, ax = plt.subplots(figsize=(4.5, 3.2))
     ax.pie(
         pay_sum["Jumlah_Transaksi"],
         labels=pay_sum["Kategori_Pembayaran"],
