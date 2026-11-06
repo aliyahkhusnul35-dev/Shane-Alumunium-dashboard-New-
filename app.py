@@ -344,13 +344,13 @@ if len(pay_sum) > 0:
             pay_sum["Jumlah_Transaksi"],
             labels=pay_sum["Kategori_Pembayaran"],
             autopct="%1.1f%%",
-            startangle=80,
+            startangle=100,
             colors=["#3b82f6", "#f59e0b", "#64748b", "#10b981"],
             textprops={"fontsize": 8},
         )
         ax.set_title(
             "Proporsi Transaksi Pembayaran",
-            fontsize=7,
+            fontsize=8,
             fontweight="bold",
             pad=10,
         )
