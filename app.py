@@ -1,262 +1,282 @@
-import streamlit as st
-import pandas as pd
 import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
 import seaborn as sns
+import streamlit as st
 
-# Konfigurasi Halaman Dashboard
+# Konfigurasi Halaman Dashboard (Soft Blue Theme sesuai preferensi visual)
 st.set_page_config(
-    page_title="Dashboard Penjualan Shane Aluminium",
+    page_title="Dashboard Analisis Perilaku Pembelian - Shane Alumunium",
     page_icon="📊",
     layout="wide",
-    initial_sidebar_state="expanded",
 )
 
-# Styling CSS untuk tampilan UI yang lebih profesional & clean
-st.markdown("""
+# Custom CSS untuk memperindah tampilan dashboard
+st.markdown(
+    """
     <style>
-        .main-header { font-size: 28px; font-weight: bold; color: #1E3A8A; }
-        .sub-header { font-size: 16px; color: #4B5563; }
+    .main {
+        background-color: #f8f9fa;
+    }
+    .stMetric {
+        background-color: #ffffff;
+        padding: 15px;
+        border-radius: 10px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
     </style>
-""", unsafe_allow_html=True)
+""",
+    unsafe_allow_html=True,
+)
 
+
+# Memuat Data yang Telah Dibersihkan
 @st.cache_data
-def load_and_preprocess_data():
+def load_data():
     file_path = "Data Penjualan Gabungan Nov 2025-Sept 2026.xlsx"
-    xls = pd.ExcelFile(file_path)
-    df = pd.read_excel(file_path, sheet_name=xls.sheet_names[0])
-    
-    df['Tanggal'] = pd.to_datetime(df['Tanggal '])
-    df['Bulan'] = df['Tanggal'].dt.to_period('M').astype(str)
-    
-    rak_cols = ['Model Rak Solid 2p', 'Model Rak Magic 2p', 'Model Rak Magic 3p']
-    df[rak_cols] = df[rak_cols].fillna(0)
-    
-    df['Jumlah'] = pd.to_numeric(df['Jumlah'], errors='coerce').fillna(0)
-    df['Total Unit'] = df[rak_cols].sum(axis=1)
-    
-    df['Pelanggan_Clean'] = df['Toko/Pelanggan'].astype(str).str.strip().str.upper()
-    
-    def categorize_payment(ket):
-        ket_lower = str(ket).strip().lower()
-        if 'cash' in ket_lower or 'tf' in ket_lower:
-            return 'Cash / Transfer'
-        elif 'kredit' in ket_lower or 'tempo' in ket_lower or 'kontra bon' in ket_lower or 'kospin' in ket_lower:
-            return 'Kredit / Tempo'
-        elif 'giro' in ket_lower:
-            return 'Giro'
+    df = pd.read_excel(file_path, sheet_name="NOV 2025-SEPT 2026")
+
+    # Preprocessing dasar untuk dashboard
+    df["Tanggal"] = pd.to_datetime(df["Tanggal "])
+    df["Invoice"] = pd.to_numeric(df["Invoice"], errors="coerce")
+    df = df.dropna(subset=["Invoice"])
+
+    product_cols = [
+        "Model Rak Solid 2p",
+        "Model Rak Magic 2p",
+        "Model Rak Magic 3p",
+    ]
+    for col in product_cols:
+        df[col] = df[col].fillna(0)
+
+    df["Total Unit"] = (
+        pd.to_numeric(df["Total Unit"], errors="coerce").fillna(0).astype(int)
+    )
+    df["Jumlah"] = (
+        pd.to_numeric(df["Jumlah"], errors="coerce").fillna(0).astype(float)
+    )
+    df["Cash/Transfer"] = (
+        pd.to_numeric(df["Cash/Transfer"], errors="coerce")
+        .fillna(0)
+        .astype(float)
+    )
+    df["Kredit"] = (
+        pd.to_numeric(df["Kredit"], errors="coerce").fillna(0).astype(float)
+    )
+
+    # Normalisasi Nama Pelanggan & Kategori Pembayaran
+    df["Pelanggan_Cleaned"] = (
+        df["Toko/Pelanggan"].astype(str).str.strip().str.upper()
+    )
+
+    def normalize_payment(ket):
+        ket_str = str(ket).strip().lower()
+        if "cash" in ket_str or "tf" in ket_str:
+            return "Cash / Transfer"
+        elif "kredit" in ket_str or "tempo" in ket_str or "kontra bon" in ket_str:
+            return "Kredit / Tempo"
+        elif "giro" in ket_str:
+            return "Giro"
         else:
-            return 'Lainnya'
-            
-    df['Kategori_Pembayaran'] = df['Keterangan'].apply(categorize_payment)
+            return "Lainnya"
+
+    df["Kategori_Pembayaran"] = df["Keterangan"].apply(normalize_payment)
+    df["Bulan_Transaksi"] = df["Tanggal"].dt.to_period("M").astype(str)
     return df
 
-try:
-    df = load_and_preprocess_data()
-except Exception as e:
-    st.error(f"Gagal memuat dataset: {e}. Pastikan file Excel berada di direktori yang sama.")
-    st.stop()
 
-# ==========================================
-# PANEL KONTROL (SIDEBAR)
-# ==========================================
-st.sidebar.title("🔍 Filter Dashboard")
-st.sidebar.markdown("---")
+df = load_data()
 
-# 1. Filter Bulan
-bulan_list = sorted(df['Bulan'].unique())
-bulan_options = ["Semua Bulan"] + bulan_list
-selected_bulan_dropdown = st.sidebar.selectbox("Pilih Periode Bulan", options=bulan_options)
+# --- SIDEBAR FILTER ---
+st.sidebar.header("🔍 Filter Dashboard")
+st.sidebar.markdown(
+    "Gunakan filter di bawah untuk meninjau data secara interaktif."
+)
 
-if selected_bulan_dropdown == "Semua Bulan":
-    df_filtered_bulan = df
-else:
-    df_filtered_bulan = df[df['Bulan'] == selected_bulan_dropdown]
+# Filter Rentang Bulan / Periode
+all_months = sorted(df["Bulan_Transaksi"].unique())
+selected_months = st.sidebar.multiselect(
+    "Pilih Bulan Transaksi", options=all_months, default=all_months
+)
 
-# 2. Filter Metode Pembayaran
-pembayaran_list = sorted(df['Kategori_Pembayaran'].unique())
-pembayaran_options = ["Semua Metode Pembayaran"] + pembayaran_list
-selected_pembayaran_dropdown = st.sidebar.selectbox("Metode Pembayaran", options=pembayaran_options)
+# Filter Kategori Pembayaran
+all_payments = sorted(df["Kategori_Pembayaran"].unique())
+selected_payments = st.sidebar.multiselect(
+    "Pilih Metode Pembayaran", options=all_payments, default=all_payments
+)
 
-if selected_pembayaran_dropdown == "Semua Metode Pembayaran":
-    df_filtered = df_filtered_bulan
-else:
-    df_filtered = df_filtered_bulan[df_filtered_bulan['Kategori_Pembayaran'] == selected_pembayaran_dropdown]
+# Terapkan Filter ke DataFrame
+df_filtered = df[
+    df["Bulan_Transaksi"].isin(selected_months)
+    & df["Kategori_Pembayaran"].isin(selected_payments)
+]
 
-# 3. Pencarian Toko Interaktif
-st.sidebar.markdown("---")
-st.sidebar.markdown("🏪 **Pencarian Toko**")
-search_toko = st.sidebar.text_input("Cari Nama Toko / Pelanggan:", placeholder="Contoh: Barokah")
-
-if search_toko:
-    df_filtered = df_filtered[df_filtered['Pelanggan_Clean'].str.contains(search_toko.upper(), na=False)]
-
-st.sidebar.markdown("---")
-st.sidebar.markdown(f"**Total Data Terpilih:** {len(df_filtered):,} baris")
-
-# ==========================================
-# KONTEN UTAMA DASHBOARD
-# ==========================================
-st.markdown('<p class="main-header">📊 Dashboard Analisis Penjualan - Shane Aluminium</p>', unsafe_allow_html=True)
-st.markdown('<p class="sub-header">Sistem Business Intelligence untuk Pemantauan Performa Penjualan dan Perilaku Pelanggan</p>', unsafe_allow_html=True)
+# --- HEADER UTAMA ---
+st.title("📊 Dashboard Business Intelligence: Analisis Perilaku Pembelian Pelanggan")
+st.subheader("Studi Kasus: Shane Alumunium (Periode November 2025 - September 2026)")
 st.markdown("---")
 
-# KPI Kartu Ringkasan
-total_penjualan = df_filtered['Jumlah'].sum()
-total_unit = df_filtered['Total Unit'].sum()
-total_transaksi = len(df_filtered)
-avg_transaksi = total_penjualan / total_transaksi if total_transaksi > 0 else 0
+# --- INDIKATOR UTAMA (METRICS) ---
+total_penjualan = df_filtered["Jumlah"].sum()
+total_transaksi = df_filtered["Invoice"].count()
+total_unit_terjual = df_filtered["Total Unit"].sum()
+total_pelanggan_aktif = df_filtered["Pelanggan_Cleaned"].nunique()
 
 col1, col2, col3, col4 = st.columns(4)
-col1.metric("💰 Total Penjualan", f"Rp {total_penjualan:,.0f}")
-col2.metric("📦 Total Unit Terjual", f"{int(total_unit):,} Unit")
-col3.metric("📋 Jumlah Transaksi", f"{total_transaksi:,} Transaksi")
-col4.metric("📈 Rata-rata / Transaksi", f"Rp {avg_transaksi:,.0f}")
+col1.metric("Total Nilai Penjualan", f"Rp {total_penjualan:,.0f}")
+col2.metric("Jumlah Transaksi", f"{total_transaksi:,} Invoice")
+col3.metric("Total Unit Terjual", f"{total_unit_terjual:,} Unit")
+col4.metric("Pelanggan Aktif", f"{total_pelanggan_aktif:,} Toko")
 
 st.markdown("---")
 
-# Baris Grafik 1: Tren Penjualan & Produk Rak
-row1_col1, row1_col2 = st.columns(2)
-with row1_col1:
-    st.subheader("📈 Tren Penjualan Bulanan")
-    if not df_filtered.empty:
-        trend_data = df_filtered.groupby("Bulan")["Jumlah"].sum().reset_index()
-        fig, ax = plt.subplots(figsize=(7, 4))
-        ax.plot(trend_data["Bulan"], trend_data["Jumlah"] / 1e6, marker="o", color="#2B6CB0", linewidth=2.5)
-        ax.set_title("Total Penjualan per Bulan (Juta IDR)", fontsize=11, fontweight="bold", color="#2D3748")
-        ax.set_xlabel("Bulan", color="#4A5568")
-        ax.set_ylabel("Penjualan (Juta Rp)", color="#4A5568")
-        ax.grid(True, linestyle="--", alpha=0.5)
-        plt.xticks(rotation=45)
-        st.pyplot(fig)
-    else:
-        st.warning("Data tidak ditemukan.")
+# --- TABS UNTUK STRUKTUR ANALISIS ---
+tab1, tab2, tab3, tab4 = st.tabs(
+    ["📈 Tren Penjualan", "📦 Analisis Produk", "👥 Perilaku Pelanggan", "💳 Analisis Pembayaran"]
+)
 
-with row1_col2:
-    st.subheader("📦 Kontribusi Model Produk Rak")
-    if not df_filtered.empty:
-        prod_data = pd.Series({
-            "Rak Solid 2P": df_filtered["Model Rak Solid 2p"].sum(),
-            "Rak Magic 2P": df_filtered["Model Rak Magic 2p"].sum(),
-            "Rak Magic 3P": df_filtered["Model Rak Magic 3p"].sum()
-        })
-        fig, ax = plt.subplots(figsize=(7, 4))
-        prod_data.plot(kind="bar", ax=ax, color=["#3182CE", "#D69E2E", "#805AD5"], edgecolor="none")
-        ax.set_title("Total Unit Terjual Berdasarkan Model Rak", fontsize=11, fontweight="bold", color="#2D3748")
-        ax.set_xlabel("Model Produk", color="#4A5568")
-        ax.set_ylabel("Jumlah Unit", color="#4A5568")
-        ax.grid(axis="y", linestyle="--", alpha=0.5)
-        plt.xticks(rotation=0)
-        st.pyplot(fig)
-    else:
-        st.warning("Data tidak ditemukan.")
-
-st.markdown("---")
-
-# ==========================================
-# BARIS 2: ANALISIS PERILAKU PELANGGAN (RFM)
-# ==========================================
-st.subheader("🏆 Top Pelanggan Berdasarkan Nilai Pembelian (RFM Analysis)")
-
-if not df_filtered.empty:
-    snapshot_date = df['Tanggal'].max() + pd.Timedelta(days=1)
-    
-    rfm_table = df_filtered.groupby('Pelanggan_Clean').agg(
-        Recency=('Tanggal', lambda x: (snapshot_date - x.max()).days),
-        Frequency=('Invoice', 'count'),
-        Monetary=('Jumlah', 'sum')
-    ).reset_index()
-    
-    rfm_sorted = rfm_table.sort_values(by='Monetary', ascending=False).reset_index(drop=True)
-    
-    col_rfm1, col_rfm2 = st.columns([1.2, 1])
-    
-    with col_rfm1:
-        st.markdown("**Tabel Top 5 Pelanggan (Detail RFM):**")
-        top5_rfm = rfm_sorted.head(5).copy()
-        top5_rfm_display = top5_rfm.copy()
-        top5_rfm_display['Monetary'] = top5_rfm_display['Monetary'].apply(lambda x: f"Rp {x:,.0f}".replace(",", "."))
-        top5_rfm_display.columns = ['Pelanggan', 'Recency (Hari)', 'Frequency (Transaksi)', 'Monetary (Total Belanja)']
-        st.dataframe(top5_rfm_display, use_container_width=True, hide_index=True)
-        
-    with col_rfm2:
-        st.markdown("**Visualisasi Omzet Top 5 Pelanggan:**")
-        fig_rfm, ax_rfm = plt.subplots(figsize=(6, 3.5))
-        sns.barplot(
-            data=top5_rfm,
-            y='Pelanggan_Clean',
-            x=top5_rfm['Monetary'] / 1e6,
-            palette='Blues_r',
-            ax=ax_rfm
-        )
-        ax_rfm.set_title("Top 5 Pelanggan (Juta Rp)", fontsize=11, fontweight="bold", color="#2D3748")
-        ax_rfm.set_xlabel("Total Pembelian (Juta Rp)", color="#4A5568")
-        ax_rfm.set_ylabel("Nama Pelanggan", color="#4A5568")
-        for p in ax_rfm.patches:
-            width = p.get_width()
-            ax_rfm.annotate(f"{width:.1f}M", (width, p.get_y() + p.get_height() / 2.),
-                            ha='left', va='center', xytext=(5, 0), textcoords='offset points', fontsize=9)
-        st.pyplot(fig_rfm)
-else:
-    st.warning("Data tidak tersedia untuk analisis RFM.")
-
-st.markdown("---")
-
-# Baris Grafik 3: Proporsi Metode Pembayaran
-col_pie1, col_pie2, col_pie3 = st.columns([1, 2, 1])
-with col_pie2:
-    st.subheader("💳 Proporsi Metode Pembayaran")
-    if not df_filtered.empty:
-        pay_counts = df_filtered['Kategori_Pembayaran'].value_counts()
-        fig, ax = plt.subplots(figsize=(6, 5))
-        total_sum = pay_counts.sum()
-        
-        def smart_autopct(pct):
-            return f"{pct:.1f}%" if pct >= 2.0 else ""
-            
-        wedges, texts, autotexts = ax.pie(
-            pay_counts,
-            autopct=smart_autopct,
-            startangle=90,
-            pctdistance=0.65,
-            colors=['#63B3ED', '#4FD1C5', '#F6AD55', '#B794F4'],
-            wedgeprops=dict(edgecolor='white', linewidth=1.5)
-        )
-        
-        for autotext in autotexts:
-            autotext.set_color('#1A202C')
-            autotext.set_fontsize(10)
-            autotext.set_weight('bold')
-            
-        legend_labels = [f"{label}: {val} ({val/total_sum*100:.1f}%)" for label, val in zip(pay_counts.index, pay_counts.values)]
-        
-        ax.legend(
-            wedges, legend_labels,
-            title="Keterangan & Persentase",
-            loc="center left",
-            bbox_to_anchor=(1, 0, 0.5, 1),
-            fontsize=10
-        )
-        ax.set_title("Distribusi Transaksi", fontsize=11, fontweight="bold", color="#2D3748", pad=10)
-        st.pyplot(fig)
-    else:
-        st.warning("Data pembayaran tidak tersedia.")
-
-st.markdown("---")
-
-# Bagian Tabel Detail & Fitur Download CSV
-st.subheader("📋 Detail Data Transaksi Terfilter")
-if not df_filtered.empty:
-    st.dataframe(df_filtered[[
-        "Tanggal", "Invoice", "Toko/Pelanggan", "Alamat", 
-        "Total Unit", "Jumlah", "Keterangan", "Kategori_Pembayaran"
-    ]], use_container_width=True)
-    
-    csv_data = df_filtered.to_csv(index=False).encode('utf-8')
-    st.download_button(
-        label="📥 Unduh Data Terfilter (CSV)",
-        data=csv_data,
-        file_name="laporan_penjualan_shane_aluminium.csv",
-        mime="text/csv"
+with tab1:
+    st.markdown("### Analisis Tren Penjualan Bulanan")
+    st.markdown(
+        "Grafik berikut menunjukkan fluktuasi nilai penjualan total ($TS = \sum V_i$) selama periode pengamatan."
     )
-else:
-    st.warning("Tidak ada data transaksi yang sesuai dengan filter.")
+
+    trend_df = (
+        df_filtered.groupby("Bulan_Transaksi")
+        .agg(Total_Penjualan=("Jumlah", "sum"), Jumlah_Transaksi=("Invoice", "count"))
+        .reset_index()
+    )
+
+    fig, ax = plt.subplots(figsize=(10, 4.5))
+    ax.plot(
+        trend_df["Bulan_Transaksi"],
+        trend_df["Total_Penjualan"] / 1e6,
+        marker="o",
+        color="#2b5c8f",
+        linewidth=2.5,
+    )
+    ax.set_title("Tren Nilai Penjualan Bulanan (Dalam Juta Rupiah)", fontsize=12, fontweight="bold")
+    ax.set_xlabel("Bulan", fontsize=10)
+    ax.set_ylabel("Total Penjualan (Juta Rp)", fontsize=10)
+    plt.xticks(rotation=45)
+    ax.grid(True, linestyle="--", alpha=0.5)
+    st.pyplot(fig)
+
+    with st.expander("Lihat Tabel Ringkasan Tren Penjualan"):
+        st.dataframe(
+            trend_df.style.format({"Total_Penjualan": "Rp {:,.2f}"}),
+            use_container_width=True,
+        )
+
+with tab2:
+    st.markdown("### Analisis Kontribusi Produk")
+    st.markdown("Perbandingan total unit terjual ($TQ = \sum Q_i$) untuk setiap model rak.")
+
+    prod_sum = pd.DataFrame(
+        {
+            "Kategori Produk": [
+                "Model Rak Solid 2P",
+                "Model Rak Magic 2P",
+                "Model Rak Magic 3P",
+            ],
+            "Total Unit Terjual": [
+                df_filtered["Model Rak Solid 2p"].sum(),
+                df_filtered["Model Rak Magic 2p"].sum(),
+                df_filtered["Model Rak Magic 3p"].sum(),
+            ],
+        }
+    )
+
+    fig, ax = plt.subplots(figsize=(8, 4.5))
+    bars = ax.bar(
+        prod_sum["Kategori Produk"],
+        prod_sum["Total Unit Terjual"],
+        color=["#4B89DC", "#34A853", "#FBBC05"],
+        width=0.5,
+    )
+    ax.set_title("Total Unit Terjual Berdasarkan Model Produk", fontsize=12, fontweight="bold")
+    ax.set_ylabel("Total Unit", fontsize=10)
+    for bar in bars:
+        yval = bar.get_height()
+        ax.text(
+            bar.get_x() + bar.get_width() / 2,
+            yval + 10,
+            f"{int(yval)}",
+            ha="center",
+            va="bottom",
+            fontsize=10,
+            fontweight="bold",
+        )
+    st.pyplot(fig)
+
+    st.dataframe(prod_sum, use_container_width=True)
+
+with tab3:
+    st.markdown("### Analisis Perilaku Pembelian Pelanggan (RFM Deskriptif)")
+    st.markdown(
+        "Pengelompokan transaksi berdasarkan pelanggan untuk melihat frekuensi pembelian ($F_j$) dan total nilai pembelian ($M_j$)."
+    )
+
+    rfm_table = (
+        df_filtered.groupby("Pelanggan_Cleaned")
+        .agg(
+            Frekuensi_Transaksi=("Invoice", "count"),
+            Total_Nilai_Pembelian=("Jumlah", "sum"),
+            Total_Unit_Dibeli=("Total Unit", "sum"),
+        )
+        .reset_index()
+        .sort_values(by="Total_Nilai_Pembelian", ascending=False)
+    )
+
+    st.dataframe(
+        rfm_table.head(15).style.format({"Total_Nilai_Pembelian": "Rp {:,.2f}"}),
+        use_container_width=True,
+    )
+
+with tab4:
+    st.markdown("### Analisis Metode Pembayaran")
+    st.markdown(
+        "Distribusi transaksi antara pembayaran tunai/transfer, kredit/tempo, dan giro."
+    )
+
+    pay_sum = (
+        df_filtered.groupby("Kategori_Pembayaran")
+        .agg(
+            Jumlah_Transaksi=("Invoice", "count"),
+            Total_Penjualan=("Jumlah", "sum"),
+            Cash_Diterima=("Cash/Transfer", "sum"),
+            Kredit_Tempo=("Kredit", "sum"),
+        )
+        .reset_index()
+    )
+
+    col_a, col_b = st.columns(2)
+    with col_a:
+        fig, ax = plt.subplots(figsize=(6, 4))
+        ax.pie(
+            pay_sum["Jumlah_Transaksi"],
+            labels=pay_sum["Kategori_Pembayaran"],
+            autopct="%1.1f%%",
+            startangle=140,
+            colors=["#4682B4", "#CD853F", "#708090", "#DAA520"],
+        )
+        ax.set_title("Proporsi Transaksi Berdasarkan Pembayaran", fontsize=11, fontweight="bold")
+        st.pyplot(fig)
+
+    with col_b:
+        st.dataframe(
+            pay_sum.style.format(
+                {
+                    "Total_Penjualan": "Rp {:,.2f}",
+                    "Cash_Diterima": "Rp {:,.2f}",
+                    "Kredit_Tempo": "Rp {:,.2f}",
+                }
+            ),
+            use_container_width=True,
+        )
+
+st.markdown("---")
+st.markdown(
+    "<p style='text-align: center; color: gray;'>© 2026 | Penelitian Skripsi Sistem Informasi - STMIK IKMI Cirebon</p>",
+    unsafe_allow_html=True,
+)
