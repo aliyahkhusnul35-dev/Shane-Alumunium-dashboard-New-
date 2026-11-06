@@ -315,7 +315,7 @@ st.dataframe(
 )
 
 # ==========================================
-# 4. METODE PEMBAYARAN (SEJAJAR PAS & FONT JUDUL SAMA)
+# 4. METODE PEMBAYARAN (PIE CHART DINAIKKAN KE ATAS)
 # ==========================================
 st.markdown(
     '<p class="section-header">💳 4. Metode Pembayaran</p>',
@@ -339,7 +339,6 @@ if len(pay_sum) > 0:
     col_pay1, col_pay2 = st.columns(2)
 
     with col_pay1:
-        # Judul menggunakan HTML agar ukuran dan posisi sejajar pas dengan kolom sebelah
         st.markdown(
             "<p style='text-align: center; font-weight: bold; font-size: 1.1rem; color: #0f172a; margin-bottom: 10px;'>Proporsi Transaksi Pembayaran</p>",
             unsafe_allow_html=True,
@@ -355,11 +354,11 @@ if len(pay_sum) > 0:
             radius=0.65,
         )
         ax.set_aspect("equal")
-        fig.subplots_adjust(top=0.95, bottom=0.05, left=0.05, right=0.95)
+        # Menaikkan posisi kotak pie chart ke atas (y=0.15 agar posisinya pas di bawah judul)
+        ax.set_position([0.15, 0.18, 0.7, 0.7])
         st.pyplot(fig)
 
     with col_pay2:
-        # Judul menggunakan HTML agar ukuran font & posisinya 100% sama persis dengan sebelah
         st.markdown(
             "<p style='text-align: center; font-weight: bold; font-size: 1.1rem; color: #0f172a; margin-bottom: 10px;'>Rata-rata Nilai Penjualan (Juta IDR)</p>",
             unsafe_allow_html=True,
@@ -385,7 +384,7 @@ if len(pay_sum) > 0:
                 fontsize=8,
                 fontweight="bold",
             )
-        fig2.subplots_adjust(top=0.92, bottom=0.15, left=0.12, right=0.95)
+        fig2.subplots_adjust(top=0.9, bottom=0.15, left=0.12, right=0.95)
         st.pyplot(fig2)
 else:
     st.info("Data pembayaran kosong.")
