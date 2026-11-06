@@ -300,14 +300,13 @@ else:
 st.markdown("<br>", unsafe_allow_html=True)
 
 # ==========================================
-# BAGIAN 2: KONTRIBUSI MODEL PRODUK (DIAMANKAN & DIPERLENGKAP)
+# BAGIAN 2: KONTRIBUSI MODEL PRODUK
 # ==========================================
 st.markdown(
     '<p class="section-header">📦 2. Kontribusi Model Produk</p>',
     unsafe_allow_html=True,
 )
 
-# Menghitung total unit per model rak
 total_solid = df_filtered["Model Rak Solid 2p"].sum()
 total_magic2 = df_filtered["Model Rak Magic 2p"].sum()
 total_magic3 = df_filtered["Model Rak Magic 3p"].sum()
@@ -320,7 +319,6 @@ prod_sum = pd.DataFrame(
     }
 )
 
-# Menghitung persentase kontribusi
 if grand_total_unit > 0:
     prod_sum["Kontribusi (%)"] = (
         prod_sum["Total Unit Terjual"] / grand_total_unit
@@ -328,18 +326,16 @@ if grand_total_unit > 0:
 else:
     prod_sum["Kontribusi (%)"] = 0.0
 
-# Mengurutkan berdasarkan jumlah unit terjual untuk menentukan peringkat
+# Perbaikan nama kolom sorting sesuai dengan nama kolom DataFrame ("Total Unit Terjual")
 prod_sum = prod_sum.sort_values(
-    by="Total_Unit_Terjual", ascending=False
+    by="Total Unit Terjual", ascending=False
 ).reset_index(drop=True)
 prod_sum["Peringkat"] = range(1, len(prod_sum) + 1)
 
-# Susun ulang kolom tabel ringkasan
 prod_sum_table = prod_sum[
     ["Peringkat", "Model Rak", "Total Unit Terjual", "Kontribusi (%)"]
 ]
 
-# Tampilan berpasangan: Grafik Batang di kiri, Tabel Ringkasan & Peringkat di kanan
 col_prod1, col_prod2 = st.columns(2)
 
 with col_prod1:
@@ -379,7 +375,7 @@ with col_prod2:
     )
     st.dataframe(
         prod_sum_table.style.format(
-            {"Total_Unit_Terjual": "{:,}", "Kontribusi (%)": "{:.2f}%"}
+            {"Total Unit Terjual": "{:,}", "Kontribusi (%)": "{:.2f}%"}
         ),
         use_container_width=True,
         hide_index=True,
