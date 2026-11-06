@@ -315,7 +315,7 @@ st.dataframe(
 )
 
 # ==========================================
-# 4. METODE PEMBAYARAN (HANYA DIAGRAM PIE)
+# 4. METODE PEMBAYARAN (PIE CHART DIPERBESAR SEDIKIT)
 # ==========================================
 st.markdown(
     '<p class="section-header">💳 4. Metode Pembayaran</p>',
@@ -336,7 +336,6 @@ pay_sum["Rata_Rata_Penjualan"] = (
 )
 
 if len(pay_sum) > 0:
-    # Menggunakan layout kolom untuk menengahkan atau menempatkan diagram pie dengan rapi
     col_pie_left, col_pie_center, col_pie_right = st.columns([1, 2, 1])
     with col_pie_center:
         st.markdown(
@@ -344,6 +343,7 @@ if len(pay_sum) > 0:
             unsafe_allow_html=True,
         )
         fig, ax = plt.subplots(figsize=(7, 4))
+        # Memperbesar sedikit ukuran radius pie chart menjadi 0.62 dengan ukuran font 8
         wedges, texts, autotexts = ax.pie(
             pay_sum["Jumlah_Transaksi"],
             labels=pay_sum["Kategori_Pembayaran"],
@@ -351,7 +351,7 @@ if len(pay_sum) > 0:
             startangle=140,
             colors=["#3b82f6", "#f59e0b", "#64748b", "#10b981"],
             textprops={"fontsize": 8},
-            radius=0.55,
+            radius=0.62,
         )
         for autotext in autotexts:
             autotext.set_fontsize(8)
