@@ -93,18 +93,4 @@ def load_and_prepare_data():
         .astype(float)
     )
     df["Kredit"] = (
-        pd.to_numeric(df["Kredit"], errors="coerce").fillna(0).astype(float)
-    )
-
-    # Normalisasi Nama Pelanggan
-    df["Pelanggan_Cleaned"] = (
-        df["Toko/Pelanggan"].astype(str).str.strip().str.upper()
-    )
-
-    # Normalisasi Kategori Pembayaran
-    def normalize_payment(ket):
-        ket_str = str(ket).strip().lower()
-        if "cash" in ket_str or "tf" in ket_str:
-            return "Cash / Transfer"
-        elif "kredit" in ket_str or "tempo" in ket_str or "kontra bon" in ket_str:
-            return "Kredit
+        pd.to_numeric(df["Kredit"], errors="coerce
