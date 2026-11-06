@@ -315,7 +315,7 @@ st.dataframe(
 )
 
 # ==========================================
-# 4. METODE PEMBAYARAN (SEJAJAR PAS & LABEL LURUS)
+# 4. METODE PEMBAYARAN (SEJAJAR PAS & FONT JUDUL SAMA)
 # ==========================================
 st.markdown(
     '<p class="section-header">💳 4. Metode Pembayaran</p>',
@@ -339,6 +339,11 @@ if len(pay_sum) > 0:
     col_pay1, col_pay2 = st.columns(2)
 
     with col_pay1:
+        # Judul menggunakan HTML agar ukuran dan posisi sejajar pas dengan kolom sebelah
+        st.markdown(
+            "<p style='text-align: center; font-weight: bold; font-size: 1.1rem; color: #0f172a; margin-bottom: 10px;'>Proporsi Transaksi Pembayaran</p>",
+            unsafe_allow_html=True,
+        )
         fig, ax = plt.subplots(figsize=(7, 3.8))
         ax.pie(
             pay_sum["Jumlah_Transaksi"],
@@ -350,16 +355,15 @@ if len(pay_sum) > 0:
             radius=0.65,
         )
         ax.set_aspect("equal")
-        ax.set_title(
-            "Proporsi Transaksi Pembayaran",
-            fontsize=11,
-            fontweight="bold",
-            pad=10,
-        )
-        fig.subplots_adjust(top=0.9, bottom=0.1)
+        fig.subplots_adjust(top=0.95, bottom=0.05, left=0.05, right=0.95)
         st.pyplot(fig)
 
     with col_pay2:
+        # Judul menggunakan HTML agar ukuran font & posisinya 100% sama persis dengan sebelah
+        st.markdown(
+            "<p style='text-align: center; font-weight: bold; font-size: 1.1rem; color: #0f172a; margin-bottom: 10px;'>Rata-rata Nilai Penjualan (Juta IDR)</p>",
+            unsafe_allow_html=True,
+        )
         fig2, ax2 = plt.subplots(figsize=(7, 3.8))
         bars = ax2.bar(
             pay_sum["Kategori_Pembayaran"],
@@ -367,14 +371,7 @@ if len(pay_sum) > 0:
             color=["#3b82f6", "#f59e0b", "#64748b", "#10b981"],
             width=0.45,
         )
-        ax2.set_title(
-            "Rata-rata Nilai Penjualan (Juta IDR)",
-            fontsize=11,
-            fontweight="bold",
-            pad=20,
-        )
         ax2.set_ylabel("Rata-rata (Juta Rp)", fontsize=9)
-        # Mengatur rotation menjadi 0 agar label lurus mendatar dan tidak serong
         plt.xticks(rotation=0, fontsize=8)
         plt.yticks(fontsize=8)
         for bar in bars:
@@ -388,7 +385,7 @@ if len(pay_sum) > 0:
                 fontsize=8,
                 fontweight="bold",
             )
-        fig2.subplots_adjust(top=0.85, bottom=0.15)
+        fig2.subplots_adjust(top=0.92, bottom=0.15, left=0.12, right=0.95)
         st.pyplot(fig2)
 else:
     st.info("Data pembayaran kosong.")
