@@ -210,7 +210,7 @@ col_row1_1, col_row1_2 = st.columns(2)
 
 with col_row1_1:
     st.markdown(
-        '<p class="section-header">📈 1. Analisis Tren Penjualan Bulanan</p>',
+        '<p class="section-header">📈 1. Tren Penjualan Bulanan</p>',
         unsafe_allow_html=True,
     )
     trend_df = (
@@ -246,7 +246,7 @@ with col_row1_1:
 
 with col_row1_2:
     st.markdown(
-        '<p class="section-header">📦 2. Analisis Kontribusi Model Produk</p>',
+        '<p class="section-header">📦 2. Kontribusi Model Produk</p>',
         unsafe_allow_html=True,
     )
     prod_sum = pd.DataFrame(
@@ -292,10 +292,10 @@ with col_row1_2:
 st.markdown("<br>", unsafe_allow_html=True)
 
 # ==========================================
-# 3. ANALISIS PERILAKU PELANGGAN (RFM)
+# 3. PERILAKU PELANGGAN (RFM)
 # ==========================================
 st.markdown(
-    '<p class="section-header">👥 3. Analisis Perilaku Pembelian Pelanggan (RFM Deskriptif)</p>',
+    '<p class="section-header">👥 3. Perilaku Pembelian Pelanggan (RFM Deskriptif)</p>',
     unsafe_allow_html=True,
 )
 rfm_table = (
@@ -315,10 +315,10 @@ st.dataframe(
 )
 
 # ==========================================
-# 4. ANALISIS PEMBAYARAN (SEJAJAR BERDAMPINGAN & RAPI)
+# 4. METODE PEMBAYARAN (PIE CHART KECIL SEJAJAR & RAPI)
 # ==========================================
 st.markdown(
-    '<p class="section-header">💳 4. Analisis Metode Pembayaran</p>',
+    '<p class="section-header">💳 4. Metode Pembayaran</p>',
     unsafe_allow_html=True,
 )
 pay_sum = (
@@ -339,14 +339,15 @@ col_pay1, col_pay2 = st.columns(2)
 
 with col_pay1:
     if len(pay_sum) > 0:
-        fig, ax = plt.subplots(figsize=(7, 3.8))
+        # Ukuran figsize dikecilin agar diagram pie proporsional dan sama ukuran dengan grafik batang
+        fig, ax = plt.subplots(figsize=(5.2, 3.5))
         ax.pie(
             pay_sum["Jumlah_Transaksi"],
             labels=pay_sum["Kategori_Pembayaran"],
             autopct="%1.1f%%",
             startangle=140,
             colors=["#3b82f6", "#f59e0b", "#64748b", "#10b981"],
-            textprops={"fontsize": 9},
+            textprops={"fontsize": 8},
         )
         ax.set_title(
             "Proporsi Transaksi Pembayaran",
