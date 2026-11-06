@@ -281,4 +281,75 @@ with col_row1_2:
         ax.text(
             bar.get_x() + bar.get_width() / 2,
             yval + max(1, yval * 0.02),
-            f"{int(yval
+            f"{int(yval)}",
+            ha="center",
+            va="bottom",
+            fontsize=8,
+            fontweight="bold",
+        )
+    st.pyplot(fig)
+
+st.markdown("<br>", unsafe_allow_html=True)
+
+# ==========================================
+# 3. ANALISIS PERILAKU PELANGGAN (RFM)
+# ==========================================
+st.markdown(
+    '<p class="section-header">👥 3. Analisis Perilaku Pembelian Pelanggan (RFM Deskriptif)</p>',
+    unsafe_allow_html=True,
+)
+rfm_table = (
+    df_filtered.groupby("Pelanggan_Cleaned")
+    .agg(
+        Frekuensi_Transaksi=("Invoice", "count"),
+        Total_Nilai_Pembelian=("Jumlah", "sum"),
+        Total_Unit_Dibeli=("Total Unit", "sum"),
+    )
+    .reset_index()
+    .sort_values(by="Total_Nilai_Pembelian", ascending=False)
+)
+
+st.dataframe(
+    rfm_table.head(10).style.format({"Total_Nilai_Pembelian": "Rp {:,.2f}"}),
+    use_container_width=True,
+)
+
+# ==========================================
+# 4. ANALISIS PEMBAYARAN (SEJAJAR BERDAMPINGAN & RAPI)
+# ==========================================
+st.markdown(
+    '<p class="section-header">💳 4. Analisis Metode Pembayaran</p>',
+    unsafe_allow_html=True,
+)
+pay_sum = (
+    df_filtered.groupby("Kategori_Pembayaran")
+    .agg(
+        Jumlah_Transaksi=("Invoice", "count"),
+        Total_Penjualan=("Jumlah", "sum"),
+        Cash_Diterima=("Cash/Transfer", "sum"),
+        Kredit_Tempo=("Kredit", "sum"),
+    )
+    .reset_index()
+)
+pay_sum["Rata_Rata_Penjualan"] = (
+    pay_sum["Total_Penjualan"] / pay_sum["Jumlah_Transaksi"]
+)
+
+col_pay1, col_pay2 = st.columns(2)
+
+with col_pay1:
+    if len(pay_sum) > 0:
+        fig, ax = plt.subplots(figsize=(7, 3.8))
+        ax.pie(
+            pay_sum["Jumlah_Transaksi"],
+            labels=pay_sum["Kategori_Pembayaran"],
+            autopct="%1.1f%%",
+            startangle=140,
+            colors=["#3b82f6", "#f59e0b", "#64748b", "#10b981"],
+            textprops={"fontsize": 9},
+        )
+        ax.set_title(
+            "Proporsi Transaksi Pembayaran",
+            fontsize=11,
+            fontweight="bold",
+            pad=10,
