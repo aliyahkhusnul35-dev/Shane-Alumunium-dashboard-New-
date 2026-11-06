@@ -30,17 +30,18 @@ st.markdown(
 )
 
 
-# Memuat Data yang Telah Dibersihkan
+# Memuat & Memproses Data
 @st.cache_data
-def load_data():
+def load_and_prepare_data():
     file_path = "Data Penjualan Gabungan Nov 2025-Sept 2026.xlsx"
     df = pd.read_excel(file_path, sheet_name="NOV 2025-SEPT 2026")
 
-    # Preprocessing dasar untuk dashboard
+    # Preprocessing & Pembersihan Struktur
     df["Tanggal"] = pd.to_datetime(df["Tanggal "])
     df["Invoice"] = pd.to_numeric(df["Invoice"], errors="coerce")
     df = df.dropna(subset=["Invoice"])
 
+    # Mengisi missing values pada produk dengan 0
     product_cols = [
         "Model Rak Solid 2p",
         "Model Rak Magic 2p",
@@ -49,6 +50,7 @@ def load_data():
     for col in product_cols:
         df[col] = df[col].fillna(0)
 
+    # Penyeragaman format angka
     df["Total Unit"] = (
         pd.to_numeric(df["Total Unit"], errors="coerce").fillna(0).astype(int)
     )
@@ -64,11 +66,12 @@ def load_data():
         pd.to_numeric(df["Kredit"], errors="coerce").fillna(0).astype(float)
     )
 
-    # Normalisasi Nama Pelanggan & Kategori Pembayaran
+    # Normalisasi Nama Pelanggan
     df["Pelanggan_Cleaned"] = (
         df["Toko/Pelanggan"].astype(str).str.strip().str.upper()
     )
 
+    # Normalisasi Kategori Pembayaran
     def normalize_payment(ket):
         ket_str = str(ket).strip().lower()
         if "cash" in ket_str or "tf" in ket_str:
@@ -85,28 +88,24 @@ def load_data():
     return df
 
 
-df = load_data()
+df = load_and_prepare_data()
 
 # ==========================================
-# SIDEBAR: FILTER DASHBOARD
+# SIDEBAR: FILTER DASHBOARD (DIPERBAIKI)
 # ==========================================
 st.sidebar.markdown("🔍 ## Filter Dashboard")
 st.sidebar.markdown("---")
 
-# 1. Filter Periode Bulan (Menggunakan Multiselect dengan opsi Pilih Semua / Spesifik)
+# 1. Filter Periode Bulan
 all_months = sorted(df["Bulan_Transaksi"].unique())
 selected_months = st.sidebar.multiselect(
-    "Pilih Periode Bulan",
-    options=all_months,
-    default=all_months,  # Default terpilih semua
+    "Pilih Periode Bulan", options=all_months, default=all_months
 )
 
 # 2. Filter Metode Pembayaran
 all_payments = sorted(df["Kategori_Pembayaran"].unique())
 selected_payments = st.sidebar.multiselect(
-    "Metode Pembayaran",
-    options=all_payments,
-    default=all_payments,  # Default terpilih semua
+    "Metode Pembayaran", options=all_payments, default=all_payments
 )
 
 st.sidebar.markdown("---")
@@ -116,7 +115,7 @@ search_query = st.sidebar.text_input(
     "Cari Nama Toko / Pelanggan:", placeholder="Contoh: Barokah"
 )
 
-# Terapkan Filter ke DataFrame dengan aman
+# Terapkan Filter ke DataFrame
 df_filtered = df.copy()
 
 if selected_months:
@@ -124,7 +123,7 @@ if selected_months:
         df_filtered["Bulan_Transaksi"].isin(selected_months)
     ]
 else:
-    df_filtered = df_filtered.iloc[0:0]  # Kosong jika tidak ada yang dipilih
+    df_filtered = df_filtered.iloc[0:0]
 
 if selected_payments:
     df_filtered = df_filtered[
@@ -142,6 +141,7 @@ if search_query:
 
 st.sidebar.markdown("---")
 st.sidebar.markdown(f"📊 **Total Data Terpilih:** {len(df_filtered)} baris")
+
 
 # ==========================================
 # HEADER UTAMA DASHBOARD
@@ -164,7 +164,7 @@ col4.metric("Pelanggan Aktif", f"{total_pelanggan_aktif:,} Toko")
 
 st.markdown("---")
 
-# --- TABS ANALISIS ---
+# --- TABS ANALISIS DESKRIPTIF ---
 tab1, tab2, tab3, tab4 = st.tabs(
     ["📈 Tren Penjualan", "📦 Analisis Produk", "👥 Perilaku Pelanggan", "💳 Analisis Pembayaran"]
 )
