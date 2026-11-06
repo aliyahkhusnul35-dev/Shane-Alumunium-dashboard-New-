@@ -315,7 +315,7 @@ st.dataframe(
 )
 
 # ==========================================
-# 4. METODE PEMBAYARAN (PIE CHART & DIAGRAM BATANG BERDAMBINGAN)
+# 4. METODE PEMBAYARAN (SEJAJAR PAS & LABEL LURUS)
 # ==========================================
 st.markdown(
     '<p class="section-header">💳 4. Metode Pembayaran</p>',
@@ -374,7 +374,8 @@ if len(pay_sum) > 0:
             pad=20,
         )
         ax2.set_ylabel("Rata-rata (Juta Rp)", fontsize=9)
-        plt.xticks(rotation=15, fontsize=8)
+        # Mengatur rotation menjadi 0 agar label lurus mendatar dan tidak serong
+        plt.xticks(rotation=0, fontsize=8)
         plt.yticks(fontsize=8)
         for bar in bars:
             yval = bar.get_height()
