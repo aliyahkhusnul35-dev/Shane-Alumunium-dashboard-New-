@@ -353,7 +353,7 @@ if len(pay_sum) > 0:
         ax.set_aspect("equal")
         ax.set_title(
             "Proporsi Transaksi Pembayaran",
-            fontsize=11,
+            fontsize=8,
             fontweight="bold",
             pad=10,
         )
