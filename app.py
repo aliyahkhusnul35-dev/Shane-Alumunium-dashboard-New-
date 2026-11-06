@@ -315,7 +315,7 @@ st.dataframe(
 )
 
 # ==========================================
-# 4. METODE PEMBAYARAN (PIE CHART DINAIKKAN KE ATAS)
+# 4. METODE PEMBAYARAN (JARAK JUDUL DAN PIE CHART DIPANGKAS RAPAT)
 # ==========================================
 st.markdown(
     '<p class="section-header">💳 4. Metode Pembayaran</p>',
@@ -339,8 +339,9 @@ if len(pay_sum) > 0:
     col_pay1, col_pay2 = st.columns(2)
 
     with col_pay1:
+        # Margin bawah judul dipangkas rapat (margin-bottom: -5px)
         st.markdown(
-            "<p style='text-align: center; font-weight: bold; font-size: 1.1rem; color: #0f172a; margin-bottom: 10px;'>Proporsi Transaksi Pembayaran</p>",
+            "<p style='text-align: center; font-weight: bold; font-size: 1.1rem; color: #0f172a; margin-bottom: -5px;'>Proporsi Transaksi Pembayaran</p>",
             unsafe_allow_html=True,
         )
         fig, ax = plt.subplots(figsize=(7, 3.8))
@@ -354,8 +355,8 @@ if len(pay_sum) > 0:
             radius=0.65,
         )
         ax.set_aspect("equal")
-        # Menaikkan posisi kotak pie chart ke atas (y=0.15 agar posisinya pas di bawah judul)
-        ax.set_position([0.15, 0.18, 0.7, 0.7])
+        # Posisi kotak sumbu dinaikkan lebih dekat ke atas agar rapat dengan judul
+        ax.set_position([0.15, 0.08, 0.7, 0.85])
         st.pyplot(fig)
 
     with col_pay2:
@@ -395,16 +396,4 @@ st.dataframe(
     pay_sum.style.format(
         {
             "Total_Penjualan": "Rp {:,.2f}",
-            "Cash_Diterima": "Rp {:,.2f}",
-            "Kredit_Tempo": "Rp {:,.2f}",
-            "Rata_Rata_Penjualan": "Rp {:,.2f}",
-        }
-    ),
-    use_container_width=True,
-)
-
-st.markdown("---")
-st.markdown(
-    "<p style='text-align: center; color: #64748b; font-size: 0.85rem;'>© 2026 | Penelitian Skripsi Sistem Informasi - STMIK IKMI Cirebon</p>",
-    unsafe_allow_html=True,
-)
+            "Cash_Diterima": "
