@@ -342,12 +342,12 @@ if len(pay_sum) > 0:
         pay_sum["Jumlah_Transaksi"],
         labels=pay_sum["Kategori_Pembayaran"],
         autopct="%1.1f%%",
-        startangle=140,
+        startangle=100,
         colors=["#3b82f6", "#f59e0b", "#64748b", "#10b981"],
         textprops={"fontsize": 8},
     )
     ax.set_title(
-        "Proporsi Transaksi Pembayaran", fontsize=11, fontweight="bold", pad=10
+        "Proporsi Transaksi Pembayaran", fontsize=8, fontweight="bold", pad=10
     )
     st.pyplot(fig)
 
@@ -359,11 +359,11 @@ if len(pay_sum) > 0:
         pay_sum["Kategori_Pembayaran"],
         pay_sum["Rata_Rata_Penjualan"] / 1e6,
         color=["#3b82f6", "#f59e0b", "#64748b", "#10b981"],
-        width=0.45,
+        width=0.35,
     )
     ax2.set_title(
         "Rata-rata Nilai Penjualan (Juta IDR)",
-        fontsize=11,
+        fontsize=8,
         fontweight="bold",
         pad=10,
     )
