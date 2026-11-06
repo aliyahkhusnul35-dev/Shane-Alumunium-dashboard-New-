@@ -315,7 +315,7 @@ st.dataframe(
 )
 
 # ==========================================
-# 4. METODE PEMBAYARAN (PIE CHART DENGAN RADIUS & ASPECT TETAP)
+# 4. METODE PEMBAYARAN (PIE CHART & DIAGRAM BATANG BERDAMBINGAN DENGAN SPASI JUDUL)
 # ==========================================
 st.markdown(
     '<p class="section-header">💳 4. Metode Pembayaran</p>',
@@ -340,7 +340,6 @@ if len(pay_sum) > 0:
 
     with col_pay1:
         fig, ax = plt.subplots(figsize=(7, 3.8))
-        # Mengunci radius lingkaran pie chart (radius=0.65) dan aspek rasio 'equal' agar ukurannya selalu konsisten
         ax.pie(
             pay_sum["Jumlah_Transaksi"],
             labels=pay_sum["Kategori_Pembayaran"],
@@ -353,9 +352,9 @@ if len(pay_sum) > 0:
         ax.set_aspect("equal")
         ax.set_title(
             "Proporsi Transaksi Pembayaran",
-            fontsize=8,
+            fontsize=11,
             fontweight="bold",
-            pad=10,
+            pad=15,
         )
         st.pyplot(fig)
 
@@ -367,11 +366,12 @@ if len(pay_sum) > 0:
             color=["#3b82f6", "#f59e0b", "#64748b", "#10b981"],
             width=0.45,
         )
+        # Menambahkan pad/jarak spasi pada judul grafik batang agar tidak menempel ke label angka
         ax2.set_title(
             "Rata-rata Nilai Penjualan (Juta IDR)",
             fontsize=11,
             fontweight="bold",
-            pad=10,
+            pad=20,
         )
         ax2.set_ylabel("Rata-rata (Juta Rp)", fontsize=9)
         plt.xticks(rotation=15, fontsize=8)
@@ -380,7 +380,7 @@ if len(pay_sum) > 0:
             yval = bar.get_height()
             ax2.text(
                 bar.get_x() + bar.get_width() / 2,
-                yval + max(0.1, yval * 0.02),
+                yval + max(0.1, yval * 0.03),
                 f"Rp {yval:.1f}jt",
                 ha="center",
                 va="bottom",
