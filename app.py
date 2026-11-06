@@ -300,51 +300,90 @@ else:
 st.markdown("<br>", unsafe_allow_html=True)
 
 # ==========================================
-# BAGIAN 2: KONTRIBUSI MODEL PRODUK
+# BAGIAN 2: KONTRIBUSI MODEL PRODUK (DIAMANKAN & DIPERLENGKAP)
 # ==========================================
 st.markdown(
     '<p class="section-header">📦 2. Kontribusi Model Produk</p>',
     unsafe_allow_html=True,
 )
+
+# Menghitung total unit per model rak
+total_solid = df_filtered["Model Rak Solid 2p"].sum()
+total_magic2 = df_filtered["Model Rak Magic 2p"].sum()
+total_magic3 = df_filtered["Model Rak Magic 3p"].sum()
+grand_total_unit = total_solid + total_magic2 + total_magic3
+
 prod_sum = pd.DataFrame(
     {
-        "Kategori Produk": ["Rak Solid 2P", "Rak Magic 2P", "Rak Magic 3P"],
-        "Total Unit Terjual": [
-            df_filtered["Model Rak Solid 2p"].sum(),
-            df_filtered["Model Rak Magic 2p"].sum(),
-            df_filtered["Model Rak Magic 3p"].sum(),
-        ],
+        "Model Rak": ["Rak Solid 2P", "Rak Magic 2P", "Rak Magic 3P"],
+        "Total Unit Terjual": [total_solid, total_magic2, total_magic3],
     }
 )
 
-fig_prod, ax_prod = plt.subplots(figsize=(7, 3.8))
-bars = ax_prod.bar(
-    prod_sum["Kategori Produk"],
-    prod_sum["Total Unit Terjual"],
-    color=["#3b82f6", "#f59e0b", "#8b5cf6"],
-    width=0.45,
-)
-ax_prod.set_title(
-    "Total Unit Terjual Berdasarkan Model Rak",
-    fontsize=11,
-    fontweight="bold",
-    pad=10,
-)
-ax_prod.set_ylabel("Jumlah Unit", fontsize=9)
-plt.xticks(fontsize=8)
-plt.yticks(fontsize=8)
-for bar in bars:
-    yval = bar.get_height()
-    ax_prod.text(
-        bar.get_x() + bar.get_width() / 2,
-        yval + max(1, yval * 0.02),
-        f"{int(yval)}",
-        ha="center",
-        va="bottom",
-        fontsize=8,
-        fontweight="bold",
+# Menghitung persentase kontribusi
+if grand_total_unit > 0:
+    prod_sum["Kontribusi (%)"] = (
+        prod_sum["Total Unit Terjual"] / grand_total_unit
+    ) * 100
+else:
+    prod_sum["Kontribusi (%)"] = 0.0
+
+# Mengurutkan berdasarkan jumlah unit terjual untuk menentukan peringkat
+prod_sum = prod_sum.sort_values(
+    by="Total_Unit_Terjual", ascending=False
+).reset_index(drop=True)
+prod_sum["Peringkat"] = range(1, len(prod_sum) + 1)
+
+# Susun ulang kolom tabel ringkasan
+prod_sum_table = prod_sum[
+    ["Peringkat", "Model Rak", "Total Unit Terjual", "Kontribusi (%)"]
+]
+
+# Tampilan berpasangan: Grafik Batang di kiri, Tabel Ringkasan & Peringkat di kanan
+col_prod1, col_prod2 = st.columns(2)
+
+with col_prod1:
+    fig_prod, ax_prod = plt.subplots(figsize=(7, 3.8))
+    bars = ax_prod.bar(
+        prod_sum["Model Rak"],
+        prod_sum["Total Unit Terjual"],
+        color=["#3b82f6", "#f59e0b", "#8b5cf6"],
+        width=0.45,
     )
-st.pyplot(fig_prod)
+    ax_prod.set_title(
+        "Total Unit Terjual Berdasarkan Model Rak",
+        fontsize=11,
+        fontweight="bold",
+        pad=10,
+    )
+    ax_prod.set_ylabel("Jumlah Unit", fontsize=9)
+    plt.xticks(fontsize=8)
+    plt.yticks(fontsize=8)
+    for bar in bars:
+        yval = bar.get_height()
+        ax_prod.text(
+            bar.get_x() + bar.get_width() / 2,
+            yval + max(1, yval * 0.02),
+            f"{int(yval)}",
+            ha="center",
+            va="bottom",
+            fontsize=8,
+            fontweight="bold",
+        )
+    st.pyplot(fig_prod)
+
+with col_prod2:
+    st.markdown(
+        "<p style='font-weight: 600; font-size: 1.05rem; color: #1e293b; margin-top: 5px;'>Tabel Ringkasan & Peringkat Produk</p>",
+        unsafe_allow_html=True,
+    )
+    st.dataframe(
+        prod_sum_table.style.format(
+            {"Total_Unit_Terjual": "{:,}", "Kontribusi (%)": "{:.2f}%"}
+        ),
+        use_container_width=True,
+        hide_index=True,
+    )
 
 st.markdown("<br>", unsafe_allow_html=True)
 
