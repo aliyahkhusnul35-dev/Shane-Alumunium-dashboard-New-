@@ -326,7 +326,6 @@ if grand_total_unit > 0:
 else:
     prod_sum["Kontribusi (%)"] = 0.0
 
-# Perbaikan nama kolom sorting sesuai dengan nama kolom DataFrame ("Total Unit Terjual")
 prod_sum = prod_sum.sort_values(
     by="Total Unit Terjual", ascending=False
 ).reset_index(drop=True)
@@ -384,91 +383,102 @@ with col_prod2:
 st.markdown("<br>", unsafe_allow_html=True)
 
 # ==========================================
-# BAGIAN 3: PERILAKU PELANGGAN (RFM)
+# BAGIAN 3: ANALISIS PERILAKU PEMBELIAN PELANGGAN (RFM LENGKAP)
 # ==========================================
 st.markdown(
-    '<p class="section-header">👥 3. Perilaku Pembelian Pelanggan (RFM Deskriptif)</p>',
+    '<p class="section-header">👥 3. Analisis Perilaku Pembelian Pelanggan (RFM)</p>',
     unsafe_allow_html=True,
 )
+
+# Menentukan tanggal acuan untuk Recency (tanggal transaksi maksimum dalam dataset)
+max_date = df["Tanggal"].max()
+
 rfm_table = (
     df_filtered.groupby("Pelanggan_Cleaned")
     .agg(
         Frekuensi_Transaksi=("Invoice", "count"),
         Total_Nilai_Pembelian=("Jumlah", "sum"),
         Total_Unit_Dibeli=("Total Unit", "sum"),
+        Tanggal_Terakhir=("Tanggal", "max"),
     )
     .reset_index()
-    .sort_values(by="Total_Nilai_Pembelian", ascending=False)
 )
 
-st.dataframe(
-    rfm_table.head(10).style.format({"Total_Nilai_Pembelian": "Rp {:,.2f}"}),
-    use_container_width=True,
-)
+# Menghitung Recency (jarak hari sejak transaksi terakhir hingga tanggal maksimum data)
+rfm_table["Recency (Hari)"] = (
+    max_date - rfm_table["Tanggal_Terakhir"]
+).dt.days
+rfm_table = rfm_table.drop(columns=["Tanggal_Terakhir"])
+
+# Mengurutkan berdasarkan Total Nilai Pembelian untuk Top 10 Pelanggan
+rfm_table_sorted = rfm_table.sort_values(
+    by="Total_Nilai_Pembelian", ascending=False
+).reset_index(drop=True)
+rfm_table_sorted["Peringkat"] = range(1, len(rfm_table_sorted) + 1)
+
+# Format tabel akhir
+rfm_display = rfm_table_sorted[
+    [
+        "Peringkat",
+        "Pelanggan_Cleaned",
+        "Frekuensi_Transaksi",
+        "Total_Nilai_Pembelian",
+        "Total_Unit_Dibeli",
+        "Recency (Hari)",
+    ]
+]
+rfm_display.columns = [
+    "Peringkat",
+    "Nama Toko / Pelanggan",
+    "Frekuensi Transaksi",
+    "Total Nilai Pembelian",
+    "Total Unit Dibeli",
+    "Recency (Hari)",
+]
+
+col_rfm1, col_rfm2 = st.columns([1.3, 0.7])
+
+with col_rfm1:
+    st.markdown(
+        "<p style='font-weight: 600; font-size: 1.05rem; color: #1e293b; margin-top: 5px;'>Top 10 Pelanggan (Berdasarkan Total Pembelian)</p>",
+        unsafe_allow_html=True,
+    )
+    st.dataframe(
+        rfm_display.head(10).style.format(
+            {"Total Nilai Pembelian": "Rp {:,.2f}", "Total Unit Dibeli": "{:,}"}
+        ),
+        use_container_width=True,
+        hide_index=True,
+    )
+
+with col_rfm2:
+    st.markdown(
+        "<p style='font-weight: 600; font-size: 1.05rem; color: #1e293b; margin-top: 5px;'>Hubungan Frekuensi & Nilai</p>",
+        unsafe_allow_html=True,
+    )
+    fig_rfm, ax_rfm = plt.subplots(figsize=(5, 3.8))
+    ax_rfm.scatter(
+        rfm_table["Frekuensi_Transaksi"],
+        rfm_table["Total_Nilai_Pembelian"] / 1e6,
+        color="#3b82f6",
+        alpha=0.7,
+        edgecolors="w",
+        s=50,
+    )
+    ax_rfm.set_title(
+        "Frekuensi vs Nilai Pembelian", fontsize=10, fontweight="bold", pad=10
+    )
+    ax_rfm.set_xlabel("Frekuensi Transaksi", fontsize=8)
+    ax_rfm.set_ylabel("Total Nilai (Juta Rp)", fontsize=8)
+    plt.xticks(fontsize=8)
+    plt.yticks(fontsize=8)
+    ax_rfm.grid(True, linestyle="--", alpha=0.4)
+    st.pyplot(fig_rfm)
+
+st.markdown("<br>", unsafe_allow_html=True)
 
 # ==========================================
 # BAGIAN 4: METODE PEMBAYARAN (PIE CHART)
 # ==========================================
 st.markdown(
-    '<p class="section-header">💳 4. Metode Pembayaran</p>',
-    unsafe_allow_html=True,
-)
-pay_sum = (
-    df_filtered.groupby("Kategori_Pembayaran")
-    .agg(
-        Jumlah_Transaksi=("Invoice", "count"),
-        Total_Penjualan=("Jumlah", "sum"),
-        Cash_Diterima=("Cash/Transfer", "sum"),
-        Kredit_Tempo=("Kredit", "sum"),
-    )
-    .reset_index()
-)
-pay_sum["Rata_Rata_Penjualan"] = (
-    pay_sum["Total_Penjualan"] / pay_sum["Jumlah_Transaksi"]
-)
-
-if len(pay_sum) > 0:
-    col_pie_left, col_pie_center, col_pie_right = st.columns([1, 2, 1])
-    with col_pie_center:
-        st.markdown(
-            "<p style='text-align: center; font-weight: bold; font-size: 1.1rem; color: #0f172a; margin-bottom: -5px;'>Proporsi Transaksi Pembayaran</p>",
-            unsafe_allow_html=True,
-        )
-        fig_pie, ax_pie = plt.subplots(figsize=(7, 4))
-        wedges, texts, autotexts = ax_pie.pie(
-            pay_sum["Jumlah_Transaksi"],
-            labels=pay_sum["Kategori_Pembayaran"],
-            autopct="%1.1f%%",
-            startangle=140,
-            colors=["#3b82f6", "#f59e0b", "#64748b", "#10b981"],
-            textprops={"fontsize": 8},
-            radius=0.62,
-        )
-        for autotext in autotexts:
-            autotext.set_fontsize(8)
-
-        ax_pie.set_aspect("equal")
-        ax_pie.set_position([0.15, 0.08, 0.7, 0.85])
-        st.pyplot(fig_pie)
-else:
-    st.info("Data pembayaran kosong.")
-
-st.markdown("<br>", unsafe_allow_html=True)
-st.markdown("**Tabel Ringkasan Metode Pembayaran:**")
-st.dataframe(
-    pay_sum.style.format(
-        {
-            "Total_Penjualan": "Rp {:,.2f}",
-            "Cash_Diterima": "Rp {:,.2f}",
-            "Kredit_Tempo": "Rp {:,.2f}",
-            "Rata_Rata_Penjualan": "Rp {:,.2f}",
-        }
-    ),
-    use_container_width=True,
-)
-
-st.markdown("---")
-st.markdown(
-    "<p style='text-align: center; color: #64748b; font-size: 0.85rem;'>© 2026 | Penelitian Skripsi Sistem Informasi - STMIK IKMI Cirebon</p>",
-    unsafe_allow_html=True,
-)
+    '<p class="section-header">💳 4
