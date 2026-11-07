@@ -288,4 +288,53 @@ if len(trend_df) > 0:
             fontweight="bold",
             pad=10,
         )
-        ax2.set_xlabel("Bulan
+        ax2.set_xlabel("Bulan", fontsize=9)
+        ax2.set_ylabel("Jumlah Transaksi", fontsize=9)
+        plt.xticks(rotation=45, fontsize=8)
+        plt.yticks(fontsize=8)
+        ax2.grid(True, linestyle="--", alpha=0.4)
+        st.pyplot(fig2)
+else:
+    st.warning("Tidak ada data tren penjualan.")
+
+st.markdown("<br>", unsafe_allow_html=True)
+
+# ==========================================
+# BAGIAN 2: KONTRIBUSI MODEL PRODUK
+# ==========================================
+st.markdown(
+    '<p class="section-header">📦 2. Kontribusi Model Produk</p>',
+    unsafe_allow_html=True,
+)
+
+total_solid = df_filtered["Model Rak Solid 2p"].sum()
+total_magic2 = df_filtered["Model Rak Magic 2p"].sum()
+total_magic3 = df_filtered["Model Rak Magic 3p"].sum()
+grand_total_unit = total_solid + total_magic2 + total_magic3
+
+prod_sum = pd.DataFrame(
+    {
+        "Model Rak": ["Rak Solid 2P", "Rak Magic 2P", "Rak Magic 3P"],
+        "Total Unit Terjual": [total_solid, total_magic2, total_magic3],
+    }
+)
+
+if grand_total_unit > 0:
+    prod_sum["Kontribusi (%)"] = (
+        prod_sum["Total Unit Terjual"] / grand_total_unit
+    ) * 100
+else:
+    prod_sum["Kontribusi (%)"] = 0.0
+
+prod_sum = prod_sum.sort_values(
+    by="Total Unit Terjual", ascending=False
+).reset_index(drop=True)
+prod_sum["Peringkat"] = range(1, len(prod_sum) + 1)
+
+prod_sum_table = prod_sum[
+    ["Peringkat", "Model Rak", "Total Unit Terjual", "Kontribusi (%)"]
+]
+
+col_prod1, col_prod2 = st.columns(2)
+
+with col_prod1:
