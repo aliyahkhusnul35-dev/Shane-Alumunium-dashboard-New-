@@ -260,13 +260,12 @@ if len(trend_df) > 0:
             markersize=5,
         )
         ax.set_title(
-            "Tren Total Penjualan per Bulan (Juta IDR)",
-            fontsize=11,
-            fontweight="bold",
-            pad=10,
+            "Tren Total Penjualan per Bulan", fontsize=11, fontweight="bold", pad=10
         )
-        ax.set_xlabel("Bulan", fontsize=9)
-        ax.set_ylabel("Penjualan (Juta Rp)", fontsize=9)
+        ax.set_xlabel("Bulan Transaksi", fontsize=9)
+        ax.set_ylabel(
+            "Total Penjualan (Juta Rupiah)", fontsize=9
+        )  # Satuan Juta Rupiah yang jelas
         plt.xticks(rotation=45, fontsize=8)
         plt.yticks(fontsize=8)
         ax.grid(True, linestyle="--", alpha=0.4)
@@ -288,8 +287,10 @@ if len(trend_df) > 0:
             fontweight="bold",
             pad=10,
         )
-        ax2.set_xlabel("Bulan", fontsize=9)
-        ax2.set_ylabel("Jumlah Transaksi", fontsize=9)
+        ax2.set_xlabel("Bulan Transaksi", fontsize=9)
+        ax2.set_ylabel(
+            "Jumlah Transaksi (Kali)", fontsize=9
+        )  # Satuan transaksi yang jelas[cite: 6]
         plt.xticks(rotation=45, fontsize=8)
         plt.yticks(fontsize=8)
         ax2.grid(True, linestyle="--", alpha=0.4)
@@ -351,7 +352,10 @@ with col_prod1:
         fontweight="bold",
         pad=10,
     )
-    ax_prod.set_ylabel("Jumlah Unit", fontsize=9)
+    ax_prod.set_xlabel("Model Rak Produk", fontsize=9)
+    ax_prod.set_ylabel(
+        "Jumlah Terjual (Unit)", fontsize=9
+    )  # Satuan Unit yang jelas[cite: 6]
     plt.xticks(fontsize=8)
     plt.yticks(fontsize=8)
     for bar in bars:
@@ -359,7 +363,7 @@ with col_prod1:
         ax_prod.text(
             bar.get_x() + bar.get_width() / 2,
             yval + max(1, yval * 0.02),
-            f"{int(yval)}",
+            f"{int(yval)} Unit",  # Penambahan label satuan unit
             ha="center",
             va="bottom",
             fontsize=8,
@@ -374,7 +378,7 @@ with col_prod2:
     )
     st.dataframe(
         prod_sum_table.style.format(
-            {"Total Unit Terjual": "{:,}", "Kontribusi (%)": "{:.2f}%"}
+            {"Total Unit Terjual": "{:,} Unit", "Kontribusi (%)": "{:.2f}%"}
         ),
         use_container_width=True,
         hide_index=True,
@@ -441,7 +445,12 @@ with col_rfm1:
     )
     st.dataframe(
         rfm_display.head(10).style.format(
-            {"Total Nilai Pembelian": "Rp {:,.2f}", "Total Unit Dibeli": "{:,}"}
+            {
+                "Total Nilai Pembelian": "Rp {:,.0f}",
+                "Total Unit Dibeli": "{:,} Unit",
+                "Frekuensi Transaksi": "{:,} Kali",
+                "Recency (Hari)": "{:,} Hari",
+            }
         ),
         use_container_width=True,
         hide_index=True,
@@ -464,8 +473,10 @@ with col_rfm2:
     ax_rfm.set_title(
         "Frekuensi vs Nilai Pembelian", fontsize=10, fontweight="bold", pad=10
     )
-    ax_rfm.set_xlabel("Frekuensi Transaksi", fontsize=8)
-    ax_rfm.set_ylabel("Total Nilai (Juta Rp)", fontsize=8)
+    ax_rfm.set_xlabel("Frekuensi Transaksi (Kali)", fontsize=8)
+    ax_rfm.set_ylabel(
+        "Total Nilai Pembelian (Juta Rupiah)", fontsize=8
+    )  # Satuan Juta Rupiah yang jelas[cite: 6]
     plt.xticks(fontsize=8)
     plt.yticks(fontsize=8)
     ax_rfm.grid(True, linestyle="--", alpha=0.4)
@@ -567,11 +578,11 @@ st.markdown("**Tabel Ringkasan Analisis Metode Pembayaran:**")
 st.dataframe(
     pay_sum_table.style.format(
         {
-            "Jumlah Transaksi": "{:,}",
+            "Jumlah Transaksi": "{:,} Kali",
             "Persentase Transaksi (%)": "{:.2f}%",
-            "Total Penjualan": "Rp {:,.2f}",
-            "Tunai / Transfer Masuk": "Rp {:,.2f}",
-            "Kredit / Tempo": "Rp {:,.2f}",
+            "Total Penjualan": "Rp {:,.0f}",
+            "Tunai / Transfer Masuk": "Rp {:,.0f}",
+            "Kredit / Tempo": "Rp {:,.0f}",
         }
     ),
     use_container_width=True,
@@ -581,7 +592,7 @@ st.dataframe(
 st.markdown("<br>", unsafe_allow_html=True)
 
 # ==========================================
-# BAGIAN 5: DETAIL DATA TRANSAKSI TERFILTER (TANPA JAM & TANPA DOUBLE NO)
+# BAGIAN 5: DETAIL DATA TRANSAKSI TERFILTER
 # ==========================================
 st.markdown(
     '<p class="section-header">📄 Detail Data Transaksi Terfilter</p>',
